@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SHOT by Lello 3D</title>
+<style>
+  :root{--blue:#1E5CFF;--bg:#F7F9FC;--dark:#0B0F19;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+  body{background:var(--bg);color:#111;min-height:100vh;}
+  .cover{width:100%;height:220px;background:linear-gradient(135deg,var(--blue),#5B8CFF);position:relative;}
+  .cover img{width:100%;height:100%;object-fit:cover;}
+  .avatar{width:110px;height:110px;border-radius:50%;border:5px solid #fff;background:#eee;
+    position:absolute;bottom:-55px;left:50%;transform:translateX(-50%);object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,.15);}
+  .content{max-width:480px;margin:70px auto 0;padding:0 20px 60px;text-align:center;}
+  h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+  .role{color:#667;font-size:14px;margin-bottom:14px;}
+  .bio{font-size:14px;color:#445;margin-bottom:24px;line-height:1.6;}
+  .btn{display:block;width:100%;padding:14px;margin-bottom:12px;border-radius:14px;
+    background:#fff;border:1px solid #e3e7ef;text-decoration:none;color:#111;font-weight:600;
+    box-shadow:0 2px 8px rgba(20,30,60,.04);transition:.2s;}
+  .btn:active{transform:scale(.98);}
+  .btn.primary{background:var(--blue);color:#fff;border:none;}
+  .footer{margin-top:30px;font-size:12px;color:#99a;}
+  .loading,.error{padding:80px 20px;text-align:center;color:#667;}
+</style>
+</head>
+<body>
+  <div id="app" class="loading">جاري تحميل البروفايل...</div>
+
+<script>
+// عدّل السطرين دول فقط بمعرّف مشروعك في Firebase
+const PROJECT_ID = "shot-lello3d"; // مثال: shot-lello3d-xxxxx
+
+const params = new URLSearchParams(window.location.search);
+const profileId = params.get('id');
+const app = document.getElementById('app');
+
+if (!profileId) {
+  app.className = 'error';
+  app.textContent = 'رابط غير صالح.';
+} else {
+  fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/profiles/${profileId}`)
+    .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
+    .then(renderProfile)
+    .catch(() => {
+      app.className = 'error';
+      app.textContent = 'هذا البروفايل غير متاح حاليًا.';
+    });
+}
+
+function fv(fields, key, def='') {
+  const f = fields?.[key];
+  if (!f) return def;
+  return f.stringValue ?? def;
+}
+
+function renderProfile(doc) {
+  const f = doc.fields || {};
+  const name = fv(f, 'name', 'بدون اسم');
+  const role = fv(f, 'roleOrCompany');
+  const bio = fv(f, 'bio');
+  const avatar = fv(f, 'avatarUrl');
+  const cover = fv(f, 'coverUrl');
+  const phone = fv(f, 'phone');
+  const whatsapp = fv(f, 'whatsapp');
+  const email = fv(f, 'email');
+  const website = fv(f, 'website');
+
+  let linksHtml = '';
+  const linksArr = f.links?.arrayValue?.values || [];
+  linksArr.forEach(v => {
+    const lf = v.mapValue?.fields || {};
+    const label = fv(lf, 'label', 'رابط');
+    const url = fv(lf, 'url', '#');
+    linksHtml += `<a class="btn" href="${url}" target="_blank" rel="noopener">${label}</a>`;
+  });
+
+  let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\n`;
+  if (phone) vcard += `TEL;TYPE=CELL:${phone}\n`;
+  if (email) vcard += `EMAIL:${email}\n`;
+  if (website) vcard += `URL:${website}\n`;
+  vcard += 'END:VCARD';
+  const vcardHref = 'data:text/vcard;charset=utf-8,' + encodeURIComponent(vcard);
+
+  app.className = '';
+  app.innerHTML = `
+    <div class="cover">
+      ${cover ? `<img src="${cover}" alt="cover"/>` : ''}
+      <img class="avatar" src="${avatar || 'https://via.placeholder.com/110'}" alt="avatar"/>
+    </div>
+    <div class="content">
+      <h1>${name}</h1>
+      ${role ? `<div class="role">${role}</div>` : ''}
+      ${bio ? `<div class="bio">${bio}</div>` : ''}
+      ${phone ? `<a class="btn" href="tel:${phone}">📞 اتصال</a>` : ''}
+      ${whatsapp ? `<a class="btn" href="https://wa.me/${whatsapp}">💬 واتساب</a>` : ''}
+      ${email ? `<a class="btn" href="mailto:${email}">✉️ إيميل</a>` : ''}
+      ${website ? `<a class="btn" href="${website}" target="_blank">🌐 الموقع</a>` : ''}
+      ${linksHtml}
+      <a class="btn primary" href="${vcardHref}" download="${name}.vcf">➕ حفظ في جهات الاتصال</a>
+      <div class="footer">SHOT — Powered by Lello 3D</div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
