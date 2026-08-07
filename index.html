@@ -5,54 +5,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SHOT by Lello 3D</title>
 <style>
-  :root{--blue:#1E5CFF;--bg:#F7F9FC;--dark:#0B0F19;}
-  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-  body{background:var(--bg);color:#111;min-height:100vh;}
-  .cover{width:100%;height:220px;background:linear-gradient(135deg,var(--blue),#5B8CFF);position:relative;}
+  :root{--blue:#1E5CFF;--blue2:#4C7FFF;--bg:#F5F7FB;--ink:#0E1420;--muted:#6B7280;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  .cover{width:100%;height:260px;background:linear-gradient(135deg,var(--blue),var(--blue2));position:relative;overflow:hidden;}
   .cover img{width:100%;height:100%;object-fit:cover;}
-  .avatar{width:110px;height:110px;border-radius:50%;border:5px solid #fff;background:#eee;
-    position:absolute;bottom:-55px;left:50%;transform:translateX(-50%);object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,.15);}
-  .content{max-width:480px;margin:70px auto 0;padding:0 20px 60px;text-align:center;}
-  h1{font-size:22px;font-weight:800;margin-bottom:4px;}
-  .role{color:#667;font-size:14px;margin-bottom:14px;}
-  .bio{font-size:14px;color:#445;margin-bottom:24px;line-height:1.6;}
-  .btn{display:block;width:100%;padding:14px;margin-bottom:12px;border-radius:14px;
-    background:#fff;border:1px solid #e3e7ef;text-decoration:none;color:#111;font-weight:600;
-    box-shadow:0 2px 8px rgba(20,30,60,.04);transition:.2s;}
-  .btn:active{transform:scale(.98);}
-  .btn.primary{background:var(--blue);color:#fff;border:none;}
-  .footer{margin-top:30px;font-size:12px;color:#99a;}
-  .loading,.error{padding:80px 20px;text-align:center;color:#667;}
+  .avatar-wrap{position:absolute;bottom:-64px;left:50%;transform:translateX(-50%);}
+  .avatar{width:128px;height:128px;border-radius:50%;border:6px solid #fff;background:#e9edf5;object-fit:cover;box-shadow:0 8px 24px rgba(10,20,60,.18);}
+  .content{max-width:520px;margin:80px auto 0;padding:0 22px 70px;text-align:center;}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px;}
+  .role{color:var(--muted);font-size:14px;font-weight:600;margin-bottom:16px;}
+  .bio{font-size:14.5px;color:#3a4152;margin-bottom:28px;line-height:1.7;}
+  .section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:26px 0 12px;text-align:right;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;margin-bottom:12px;
+    border-radius:16px;background:#fff;border:1px solid #E6EAF2;text-decoration:none;color:var(--ink);font-weight:700;font-size:15px;
+    box-shadow:0 2px 10px rgba(20,30,60,.05);transition:.15s;}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;box-shadow:0 6px 18px rgba(30,92,255,.28);}
+  .gallery{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;}
+  .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;}
+  .footer{margin-top:36px;font-size:12px;color:#9aa2b1;font-weight:600;}
+  .state{padding:110px 24px;text-align:center;color:var(--muted);font-size:15px;}
+  .spinner{width:34px;height:34px;border:3px solid #dbe3ff;border-top-color:var(--blue);border-radius:50%;
+    animation:spin .8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-  <div id="app" class="loading">جاري تحميل البروفايل...</div>
+  <div id="app" class="state"><div class="spinner"></div>جاري تحميل البروفايل...</div>
 
 <script>
-// عدّل السطرين دول فقط بمعرّف مشروعك في Firebase
-const PROJECT_ID = "shot-lello3d"; // مثال: shot-lello3d-xxxxx
-
+const PROJECT_ID = "shot-lello3d";
 const params = new URLSearchParams(window.location.search);
 const profileId = params.get('id');
 const app = document.getElementById('app');
 
 if (!profileId) {
-  app.className = 'error';
-  app.textContent = 'رابط غير صالح.';
+  app.innerHTML = 'رابط غير صالح.';
 } else {
   fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/profiles/${profileId}`)
     .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
     .then(renderProfile)
-    .catch(() => {
-      app.className = 'error';
-      app.textContent = 'هذا البروفايل غير متاح حاليًا.';
-    });
+    .catch(() => { app.innerHTML = 'هذا البروفايل غير متاح حاليًا.'; });
 }
 
 function fv(fields, key, def='') {
   const f = fields?.[key];
-  if (!f) return def;
-  return f.stringValue ?? def;
+  return f?.stringValue ?? def;
 }
 
 function renderProfile(doc) {
@@ -68,13 +67,19 @@ function renderProfile(doc) {
   const website = fv(f, 'website');
 
   let linksHtml = '';
-  const linksArr = f.links?.arrayValue?.values || [];
-  linksArr.forEach(v => {
+  (f.links?.arrayValue?.values || []).forEach(v => {
     const lf = v.mapValue?.fields || {};
     const label = fv(lf, 'label', 'رابط');
     const url = fv(lf, 'url', '#');
     linksHtml += `<a class="btn" href="${url}" target="_blank" rel="noopener">${label}</a>`;
   });
+
+  let galleryHtml = '';
+  const galleryArr = f.gallery?.arrayValue?.values || [];
+  if (galleryArr.length) {
+    galleryHtml = '<div class="section-title">معرض الصور</div><div class="gallery">' +
+      galleryArr.map(v => `<img src="${v.stringValue}" loading="lazy"/>`).join('') + '</div>';
+  }
 
   let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\n`;
   if (phone) vcard += `TEL;TYPE=CELL:${phone}\n`;
@@ -83,11 +88,12 @@ function renderProfile(doc) {
   vcard += 'END:VCARD';
   const vcardHref = 'data:text/vcard;charset=utf-8,' + encodeURIComponent(vcard);
 
+  document.title = `${name} — SHOT`;
   app.className = '';
   app.innerHTML = `
     <div class="cover">
       ${cover ? `<img src="${cover}" alt="cover"/>` : ''}
-      <img class="avatar" src="${avatar || 'https://via.placeholder.com/110'}" alt="avatar"/>
+      <div class="avatar-wrap"><img class="avatar" src="${avatar || 'https://api.dicebear.com/7.x/initials/svg?seed='+encodeURIComponent(name)}" alt="avatar"/></div>
     </div>
     <div class="content">
       <h1>${name}</h1>
@@ -98,6 +104,7 @@ function renderProfile(doc) {
       ${email ? `<a class="btn" href="mailto:${email}">✉️ إيميل</a>` : ''}
       ${website ? `<a class="btn" href="${website}" target="_blank">🌐 الموقع</a>` : ''}
       ${linksHtml}
+      ${galleryHtml}
       <a class="btn primary" href="${vcardHref}" download="${name}.vcf">➕ حفظ في جهات الاتصال</a>
       <div class="footer">SHOT — Powered by Lello 3D</div>
     </div>
