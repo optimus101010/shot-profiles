@@ -1,115 +1,124 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SHOT by Lello 3D</title>
-<style>
-  :root{--blue:#1E5CFF;--blue2:#4C7FFF;--bg:#F5F7FB;--ink:#0E1420;--muted:#6B7280;}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,'Segoe UI',Roboto,Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
-  .cover{width:100%;height:260px;background:linear-gradient(135deg,var(--blue),var(--blue2));position:relative;overflow:hidden;}
-  .cover img{width:100%;height:100%;object-fit:cover;}
-  .avatar-wrap{position:absolute;bottom:-64px;left:50%;transform:translateX(-50%);}
-  .avatar{width:128px;height:128px;border-radius:50%;border:6px solid #fff;background:#e9edf5;object-fit:cover;box-shadow:0 8px 24px rgba(10,20,60,.18);}
-  .content{max-width:520px;margin:80px auto 0;padding:0 22px 70px;text-align:center;}
-  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px;}
-  .role{color:var(--muted);font-size:14px;font-weight:600;margin-bottom:16px;}
-  .bio{font-size:14.5px;color:#3a4152;margin-bottom:28px;line-height:1.7;}
-  .section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:26px 0 12px;text-align:right;}
-  .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;margin-bottom:12px;
-    border-radius:16px;background:#fff;border:1px solid #E6EAF2;text-decoration:none;color:var(--ink);font-weight:700;font-size:15px;
-    box-shadow:0 2px 10px rgba(20,30,60,.05);transition:.15s;}
-  .btn:active{transform:scale(.97);}
-  .btn.primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;box-shadow:0 6px 18px rgba(30,92,255,.28);}
-  .gallery{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;}
-  .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;}
-  .footer{margin-top:36px;font-size:12px;color:#9aa2b1;font-weight:600;}
-  .state{padding:110px 24px;text-align:center;color:var(--muted);font-size:15px;}
-  .spinner{width:34px;height:34px;border:3px solid #dbe3ff;border-top-color:var(--blue);border-radius:50%;
-    animation:spin .8s linear infinite;margin:0 auto 16px;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHOT Digital Profile</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div id="app" class="state"><div class="spinner"></div>جاري تحميل البروفايل...</div>
+    <div id="app">
+        <!-- Loading State -->
+        <div id="loading-state" class="state-container">
+            <div class="spinner"></div>
+            <p class="state-text">جاري تحميل البروفايل...</p>
+        </div>
 
-<script>
-const PROJECT_ID = "shot-lello3d";
-const params = new URLSearchParams(window.location.search);
-const profileId = params.get('id');
-const app = document.getElementById('app');
+        <!-- Error State -->
+        <div id="error-state" class="state-container hidden">
+            <div class="error-icon">⚠️</div>
+            <h2 id="error-title" class="state-title">خطأ</h2>
+            <p id="error-message" class="state-text">تعذر تحميل البروفايل.</p>
+        </div>
 
-if (!profileId) {
-  app.innerHTML = 'رابط غير صالح.';
-} else {
-  fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/profiles/${profileId}`)
-    .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
-    .then(renderProfile)
-    .catch(() => { app.innerHTML = 'هذا البروفايل غير متاح حاليًا.'; });
-}
+        <!-- Profile Content Container -->
+        <div id="profile-container" class="profile-container hidden">
+            <!-- Cover Header -->
+            <div id="cover-section" class="cover-section">
+                <div id="cover-gradient" class="cover-gradient"></div>
+                <img id="cover-image" class="cover-image hidden" alt="Cover Image">
+            </div>
 
-function fv(fields, key, def='') {
-  const f = fields?.[key];
-  return f?.stringValue ?? def;
-}
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="avatar-wrapper">
+                    <img id="profile-photo" class="profile-photo hidden" alt="Profile Photo">
+                    <div id="avatar-placeholder" class="avatar-placeholder">
+                        <span id="avatar-initials"></span>
+                    </div>
+                </div>
 
-function renderProfile(doc) {
-  const f = doc.fields || {};
-  const name = fv(f, 'name', 'بدون اسم');
-  const role = fv(f, 'roleOrCompany');
-  const bio = fv(f, 'bio');
-  const avatar = fv(f, 'avatarUrl');
-  const cover = fv(f, 'coverUrl');
-  const phone = fv(f, 'phone');
-  const whatsapp = fv(f, 'whatsapp');
-  const email = fv(f, 'email');
-  const website = fv(f, 'website');
+                <div class="profile-info">
+                    <h1 id="profile-name" class="profile-name"></h1>
+                    <p id="profile-tagline" class="profile-tagline hidden"></p>
+                    
+                    <div id="profile-role-company" class="profile-role-company hidden">
+                        <span id="profile-role" class="role-badge hidden"></span>
+                        <span id="profile-company-separator" class="separator hidden">•</span>
+                        <span id="profile-company" class="company-text hidden"></span>
+                    </div>
+                </div>
 
-  let linksHtml = '';
-  (f.links?.arrayValue?.values || []).forEach(v => {
-    const lf = v.mapValue?.fields || {};
-    const label = fv(lf, 'label', 'رابط');
-    const url = fv(lf, 'url', '#');
-    linksHtml += `<a class="btn" href="${url}" target="_blank" rel="noopener">${label}</a>`;
-  });
+                <!-- Primary Action Buttons -->
+                <div id="primary-actions" class="primary-actions">
+                    <button id="save-vcard-btn" class="btn btn-primary hidden">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>حفظ جهة الاتصال</span>
+                    </button>
 
-  let galleryHtml = '';
-  const galleryArr = f.gallery?.arrayValue?.values || [];
-  if (galleryArr.length) {
-    galleryHtml = '<div class="section-title">معرض الصور</div><div class="gallery">' +
-      galleryArr.map(v => `<img src="${v.stringValue}" loading="lazy"/>`).join('') + '</div>';
-  }
+                    <button id="share-btn" class="btn btn-secondary">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>مشاركة</span>
+                    </button>
+                </div>
+            </div>
 
-  let vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\n`;
-  if (phone) vcard += `TEL;TYPE=CELL:${phone}\n`;
-  if (email) vcard += `EMAIL:${email}\n`;
-  if (website) vcard += `URL:${website}\n`;
-  vcard += 'END:VCARD';
-  const vcardHref = 'data:text/vcard;charset=utf-8,' + encodeURIComponent(vcard);
+            <!-- Profile Sections -->
+            <div class="profile-body">
+                <!-- Contact Info Section -->
+                <section id="contact-section" class="section hidden">
+                    <h2 class="section-title">معلومات الاتصال</h2>
+                    <div id="contact-grid" class="contact-grid"></div>
+                </section>
 
-  document.title = `${name} — SHOT`;
-  app.className = '';
-  app.innerHTML = `
-    <div class="cover">
-      ${cover ? `<img src="${cover}" alt="cover"/>` : ''}
-      <div class="avatar-wrap"><img class="avatar" src="${avatar || 'https://api.dicebear.com/7.x/initials/svg?seed='+encodeURIComponent(name)}" alt="avatar"/></div>
+                <!-- Custom Links Section -->
+                <section id="links-section" class="section hidden">
+                    <h2 class="section-title">الروابط الإلكترونية</h2>
+                    <div id="links-list" class="links-list"></div>
+                </section>
+
+                <!-- Gallery Section -->
+                <section id="gallery-section" class="section hidden">
+                    <h2 class="section-title">معرض الصور</h2>
+                    <div id="gallery-grid" class="gallery-grid"></div>
+                </section>
+            </div>
+
+            <!-- Footer -->
+            <footer class="profile-footer">
+                <p>Powered by <strong>SHOT</strong> | Lello 3D</p>
+            </footer>
+        </div>
     </div>
-    <div class="content">
-      <h1>${name}</h1>
-      ${role ? `<div class="role">${role}</div>` : ''}
-      ${bio ? `<div class="bio">${bio}</div>` : ''}
-      ${phone ? `<a class="btn" href="tel:${phone}">📞 اتصال</a>` : ''}
-      ${whatsapp ? `<a class="btn" href="https://wa.me/${whatsapp}">💬 واتساب</a>` : ''}
-      ${email ? `<a class="btn" href="mailto:${email}">✉️ إيميل</a>` : ''}
-      ${website ? `<a class="btn" href="${website}" target="_blank">🌐 الموقع</a>` : ''}
-      ${linksHtml}
-      ${galleryHtml}
-      <a class="btn primary" href="${vcardHref}" download="${name}.vcf">➕ حفظ في جهات الاتصال</a>
-      <div class="footer">SHOT — Powered by Lello 3D</div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="lightbox" class="lightbox hidden">
+        <span id="lightbox-close" class="lightbox-close">&times;</span>
+        <img id="lightbox-img" class="lightbox-content" alt="Enlarged Image">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
     </div>
-  `;
-}
-</script>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="./app.js"></script>
 </body>
 </html>
