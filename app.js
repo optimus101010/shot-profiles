@@ -14,6 +14,150 @@ if (!firebase.apps.length) {
 }
 const db = firebase.firestore();
 
+// Centralized Deterministic Theme Color Engine (Matches Android Kotlin Math)
+const DEFAULT_PRIMARY_HEX = '#2563EB';
+
+function normalizeHex(hex) {
+    if (!hex || typeof hex !== 'string') return DEFAULT_PRIMARY_HEX;
+    let cleaned = hex.trim().replace('#', '');
+    if (cleaned.length === 3) {
+        cleaned = cleaned[0] + cleaned[0] + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2];
+    }
+    if (cleaned.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(cleaned)) {
+        return DEFAULT_PRIMARY_HEX;
+    }
+    return '#' + cleaned.toUpperCase();
+}
+
+function hexToRgb(hex) {
+    const norm = normalizeHex(hex);
+    const r = parseInt(norm.substring(1, 3), 16) / 255.0;
+    const g = parseInt(norm.substring(3, 5), 16) / 255.0;
+    const b = parseInt(norm.substring(5, 7), 16) / 255.0;
+    return [r, g, b];
+}
+
+function rgbToHsl(r, g, b) {
+    const maxVal = Math.max(r, g, b);
+    const minVal = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (maxVal + minVal) / 2.0;
+
+    if (maxVal !== minVal) {
+        const d = maxVal - minVal;
+        s = l > 0.5 ? d / (2.0 - maxVal - minVal) : d / (maxVal + minVal);
+        switch (maxVal) {
+            case r: h = (g - b) / d + (g < b ? 6.0 : 0.0); break;
+            case g: h = (b - r) / d + 2.0; break;
+            case b: h = (r - g) / d + 4.0; break;
+        }
+        h *= 60.0;
+    }
+    return [h, s, l];
+}
+
+function hslToHex(h, s, l) {
+    const clampedH = (h % 360.0 + 360.0) % 360.0;
+    const clampedS = Math.max(0.0, Math.min(1.0, s));
+    const clampedL = Math.max(0.0, Math.min(1.0, l));
+
+    const c = (1.0 - Math.abs(2.0 * clampedL - 1.0)) * clampedS;
+    const x = c * (1.0 - Math.abs((clampedH / 60.0) % 2.0 - 1.0));
+    const m = clampedL - c / 2.0;
+
+    let rP = 0, gP = 0, bP = 0;
+    if (clampedH < 60) { rP = c; gP = x; bP = 0; }
+    else if (clampedH < 120) { rP = x; gP = c; bP = 0; }
+    else if (clampedH < 180) { rP = 0; gP = c; bP = x; }
+    else if (clampedH < 240) { rP = 0; gP = x; bP = c; }
+    else if (clampedH < 300) { rP = x; gP = 0; bP = c; }
+    else { rP = c; gP = 0; bP = x; }
+
+    const r = Math.min(255, Math.max(0, Math.round((rP + m) * 255.0)));
+    const g = Math.min(255, Math.max(0, Math.round((gP + m) * 255.0)));
+    const b = Math.min(255, Math.max(0, Math.round((bP + m) * 255.0)));
+
+    const toHex = (num) => num.toString(16).padStart(2, '0').toUpperCase();
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function generatePalette(rawHex, isDark = false) {
+    const primary = normalizeHex(rawHex);
+    const [r, g, b] = hexToRgb(primary);
+    const [h, s, l] = rgbToHsl(r, g, b);
+
+    const primaryDark = hslToHex(h, s, Math.max(0.12, l - 0.18));
+    const primaryLight = hslToHex(h, Math.max(0.15, s * 0.75), Math.min(0.92, l + 0.35));
+
+    const accentH = (h + 30.0) % 360.0;
+    const accentS = Math.max(0.0, Math.min(1.0, s + 0.15));
+    const accentL = Math.max(0.40, Math.min(0.60, l));
+    const accent = hslToHex(accentH, accentS, accentL);
+
+    const relLuminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const onPrimary = relLuminance < 0.45 ? '#FFFFFF' : '#0F172A';
+
+    if (!isDark) {
+        return {
+            primary,
+            primaryDark,
+            primaryLight,
+            accent,
+            background: hslToHex(h, Math.min(0.10, s), 0.98),
+            surface: '#FFFFFF',
+            surfaceVariant: hslToHex(h, Math.min(0.12, s), 0.94),
+            card: '#FFFFFF',
+            textPrimary: '#0F172A',
+            textSecondary: '#475569',
+            border: hslToHex(h, Math.min(0.15, s), 0.88),
+            onPrimary,
+            onBackground: '#0F172A',
+            gradientStart: primary,
+            gradientEnd: primaryDark
+        };
+    } else {
+        return {
+            primary,
+            primaryDark,
+            primaryLight,
+            accent,
+            background: hslToHex(h, Math.min(0.18, s), 0.07),
+            surface: hslToHex(h, Math.min(0.16, s), 0.12),
+            surfaceVariant: hslToHex(h, Math.min(0.16, s), 0.17),
+            card: hslToHex(h, Math.min(0.16, s), 0.12),
+            textPrimary: '#F8FAFC',
+            textSecondary: '#94A3B8',
+            border: hslToHex(h, Math.min(0.16, s), 0.22),
+            onPrimary,
+            onBackground: '#F8FAFC',
+            gradientStart: primary,
+            gradientEnd: primaryDark
+        };
+    }
+}
+
+function applyThemePalette(data) {
+    const rawHex = data.themeColorHex || '#2563EB';
+    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const palette = generatePalette(rawHex, isDark);
+
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', palette.primary);
+    root.style.setProperty('--primary-dark', palette.primaryDark);
+    root.style.setProperty('--primary-light', palette.primaryLight);
+    root.style.setProperty('--primary-hover', palette.primaryDark);
+    root.style.setProperty('--accent-color', palette.accent);
+    root.style.setProperty('--bg-color', palette.background);
+    root.style.setProperty('--card-bg', palette.surface);
+    root.style.setProperty('--surface-variant', palette.surfaceVariant);
+    root.style.setProperty('--text-main', palette.textPrimary);
+    root.style.setProperty('--text-muted', palette.textSecondary);
+    root.style.setProperty('--border-color', palette.border);
+    root.style.setProperty('--on-primary', palette.onPrimary);
+    root.style.setProperty('--gradient-start', palette.gradientStart);
+    root.style.setProperty('--gradient-end', palette.gradientEnd);
+}
+
 // SVG Icons Map
 const SVG_ICONS = {
     phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`,
@@ -68,6 +212,29 @@ function showError(title, message) {
     document.getElementById('error-state').classList.remove('hidden');
 }
 
+function mapTemplateId(rawId) {
+    if (!rawId) return 'personal_1';
+    const clean = rawId.trim().toLowerCase();
+    const validTemplates = [
+        'personal_1', 'personal_2',
+        'business_1', 'business_2', 'business_3',
+        'reviews_1', 'reviews_2',
+        'children_1', 'children_2',
+        'pets_1', 'pets_2',
+        'executive_1', 'minimal_1', 'creative_1'
+    ];
+    if (validTemplates.includes(clean)) return clean;
+    if (clean === 'executive' || clean === 't_1') return 'executive_1';
+    if (clean === 'minimal' || clean === 'modern') return 'minimal_1';
+    if (clean === 'creative' || clean === 'creator' || clean === 'personal_3') return 'creative_1';
+    if (clean === 'google_reviews' || clean === 'review' || clean === 'reviews' || clean === 'reviews_3' || clean === 't_2') return 'reviews_1';
+    if (clean === 't_3' || clean === 'personal') return 'personal_1';
+    if (clean === 'emerald' || clean === 'luxury' || clean === 't_4') return 'business_3';
+    if (clean === 'children_3' || clean === 'children' || clean === 'child' || clean === 'kids') return 'children_1';
+    if (clean === 'pets' || clean === 'pet' || clean === 'rescue') return 'pets_1';
+    return 'personal_1';
+}
+
 // Render Profile Data
 function renderProfile(data) {
     // 1. Hide Loading
@@ -76,10 +243,13 @@ function renderProfile(data) {
     const profileContainer = document.getElementById('profile-container');
     profileContainer.classList.remove('hidden');
 
-    // 2. Apply Theme Color
-    if (data.themeColorHex && /^#([0-9A-F]{3}){1,2}$/i.test(data.themeColorHex)) {
-        document.documentElement.style.setProperty('--primary-color', data.themeColorHex);
-    }
+    // 2. Set Template Identifier Attribute & Apply Theme Color Engine
+    const templateId = mapTemplateId(data.templateId);
+    profileContainer.setAttribute('data-template', templateId);
+    applyThemePalette(data);
+
+    // Inject Hero Card for Special Templates (Emergency Kids, Pet Rescue, Google Reviews)
+    renderTemplateHeroCard(data, templateId);
 
     // 3. Cover Image
     if (data.coverUri && data.coverUri.trim() !== '') {
@@ -167,6 +337,51 @@ function renderProfile(data) {
     if (hasContactDetails(data)) {
         saveVCardBtn.classList.remove('hidden');
         saveVCardBtn.onclick = () => generateVCard(data);
+    }
+}
+
+// Render Template Special Hero Cards
+function renderTemplateHeroCard(data, templateId) {
+    let existingHero = document.getElementById('template-hero-card');
+    if (existingHero) existingHero.remove();
+
+    const profileBody = document.querySelector('.profile-body');
+    if (!profileBody) return;
+
+    if (templateId === 'children_1' || templateId === 'children_2') {
+        const hero = document.createElement('div');
+        hero.id = 'template-hero-card';
+        hero.className = `template-hero-card ${templateId === 'children_1' ? 'emergency-kids' : 'adventurer-kids'}`;
+        const phone = data.phone ? normalizePhone(data.phone) : '';
+        hero.innerHTML = `
+            <div class="hero-title">${templateId === 'children_1' ? '🚨 KIDS SAFETY ID' : '🎒 JUNIOR ADVENTURER ID'}</div>
+            <div class="hero-subtitle">${templateId === 'children_1' ? 'If found separated from guardian, please call immediately!' : 'Emergency ICE Contact & School Safety Badge'}</div>
+            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">📞 CALL PARENT / GUARDIAN NOW</a>` : ''}
+        `;
+        profileBody.insertBefore(hero, profileBody.firstChild);
+    } else if (templateId === 'pets_1' || templateId === 'pets_2') {
+        const hero = document.createElement('div');
+        hero.id = 'template-hero-card';
+        hero.className = `template-hero-card ${templateId === 'pets_1' ? 'rescue-pets' : 'companion-pets'}`;
+        const phone = data.phone ? normalizePhone(data.phone) : '';
+        hero.innerHTML = `
+            <div class="hero-title">${templateId === 'pets_1' ? '🐾 PET RESCUE TAG' : '🐾 PET PROFILE & VET CARD'}</div>
+            <div class="hero-subtitle">${templateId === 'pets_1' ? 'If lost, please contact owner immediately!' : 'Medical ID & Emergency Contact Info'}</div>
+            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">📞 CALL OWNER / VET IMMEDIATELY</a>` : ''}
+        `;
+        profileBody.insertBefore(hero, profileBody.firstChild);
+    } else if (templateId.startsWith('reviews_')) {
+        const hero = document.createElement('div');
+        hero.id = 'template-hero-card';
+        hero.className = 'template-hero-card review-5star';
+        const reviewUrl = normalizeUrl(data.website || 'https://maps.google.com');
+        hero.innerHTML = `
+            <div class="hero-stars">⭐⭐⭐⭐⭐</div>
+            <div class="hero-title">${templateId === 'reviews_2' ? 'Local Business Reviews' : 'Rate Us On Google'}</div>
+            <div class="hero-subtitle">${templateId === 'reviews_2' ? 'Verified customer satisfaction & direct Google Maps reviews' : 'Tap below to leave us a 5-star review!'}</div>
+            <a href="${reviewUrl}" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn-white">⭐ WRITE A 5-STAR REVIEW</a>
+        `;
+        profileBody.insertBefore(hero, profileBody.firstChild);
     }
 }
 
