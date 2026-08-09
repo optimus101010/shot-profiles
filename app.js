@@ -172,6 +172,7 @@ const SVG_ICONS = {
 // Main Execution
 document.addEventListener('DOMContentLoaded', () => {
     const profileId = getProfileIdFromUrl();
+    const source = getSourceFromUrl();
     
     if (!profileId) {
         showError('رابط البروفايل غير صالح', 'يرجى التأكد من استخدام الرابط الصحيح كـ (?id=YOUR_ID).');
@@ -186,6 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = doc.data();
             renderProfile(data);
+
+            // Immediately increment analytics counters in Firestore
+            trackProfileOpen(profileId, source);
         })
         .catch((error) => {
             console.error('Error fetching profile from Firestore:', error);
@@ -200,6 +204,30 @@ document.addEventListener('DOMContentLoaded', () => {
 function getProfileIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id');
+}
+
+// Extract optional source from URL query string (nfc, qr, etc.)
+function getSourceFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('source');
+    return source ? source.toLowerCase().trim() : null;
+}
+
+// Increment profile analytics counters in Firestore
+function trackProfileOpen(profileId, source) {
+    const updateObj = {
+        viewsCount: firebase.firestore.FieldValue.increment(1)
+    };
+    if (source === 'nfc') {
+        updateObj.nfcOpensCount = firebase.firestore.FieldValue.increment(1);
+    } else if (source === 'qr') {
+        updateObj.qrOpensCount = firebase.firestore.FieldValue.increment(1);
+    }
+
+    db.collection('profiles').doc(profileId).update(updateObj)
+        .catch((error) => {
+            console.error('Error incrementing analytics counters in Firestore:', error);
+        });
 }
 
 // Display Error State
