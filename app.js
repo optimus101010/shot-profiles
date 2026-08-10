@@ -240,18 +240,20 @@ function showError(title, message) {
     document.getElementById('error-state').classList.remove('hidden');
 }
 
+// Defined 14 CSS Template Styles
+const DEFINED_TEMPLATES = [
+    'personal_1', 'personal_2',
+    'business_1', 'business_2', 'business_3',
+    'reviews_1', 'reviews_2',
+    'children_1', 'children_2',
+    'pets_1', 'pets_2',
+    'executive_1', 'minimal_1', 'creative_1'
+];
+
 function mapTemplateId(rawId) {
     if (!rawId) return 'personal_1';
     const clean = rawId.trim().toLowerCase();
-    const validTemplates = [
-        'personal_1', 'personal_2',
-        'business_1', 'business_2', 'business_3',
-        'reviews_1', 'reviews_2',
-        'children_1', 'children_2',
-        'pets_1', 'pets_2',
-        'executive_1', 'minimal_1', 'creative_1'
-    ];
-    if (validTemplates.includes(clean)) return clean;
+    if (DEFINED_TEMPLATES.includes(clean)) return clean;
     if (clean === 'executive' || clean === 't_1') return 'executive_1';
     if (clean === 'minimal' || clean === 'modern') return 'minimal_1';
     if (clean === 'creative' || clean === 'creator' || clean === 'personal_3') return 'creative_1';
@@ -263,30 +265,88 @@ function mapTemplateId(rawId) {
     return 'personal_1';
 }
 
+function toggleTemplate(template) {
+    const profileContainer = document.getElementById('profile-container');
+    if (!profileContainer) return null;
+
+    let targetTemplate;
+
+    if (typeof template === 'string' && template.trim() !== '') {
+        targetTemplate = mapTemplateId(template);
+    } else {
+        const currentTemplate = profileContainer.getAttribute('data-template') || 'personal_1';
+        const currentIndex = DEFINED_TEMPLATES.indexOf(currentTemplate);
+        const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % DEFINED_TEMPLATES.length : 0;
+        targetTemplate = DEFINED_TEMPLATES[nextIndex];
+    }
+
+    profileContainer.setAttribute('data-template', targetTemplate);
+
+    if (window.currentProfileData) {
+        renderTemplateHeroCard(window.currentProfileData, targetTemplate);
+    }
+
+    return targetTemplate;
+}
+
+if (typeof window !== 'undefined') {
+    window.toggleTemplate = toggleTemplate;
+    window.switchTemplate = toggleTemplate;
+    window.setTemplate = toggleTemplate;
+    window.toggleTemplateAttribute = toggleTemplate;
+    window.DEFINED_TEMPLATES = DEFINED_TEMPLATES;
+}
+
 // Render Profile Data
 function renderProfile(data) {
-    // 1. Hide Loading
+    window.currentProfileData = data;
+
+    // 1. Language & LTR/RTL Enforcement
+    const langCode = (data.profileLanguage || data.language || 'ar').toLowerCase();
+    const isRtl = langCode.startsWith('ar');
+    const dirStr = isRtl ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('dir', dirStr);
+
+    // 2. Hide Loading
     document.getElementById('loading-state').classList.add('hidden');
     document.getElementById('error-state').classList.add('hidden');
     const profileContainer = document.getElementById('profile-container');
     profileContainer.classList.remove('hidden');
+    profileContainer.setAttribute('dir', dirStr);
 
-    // 2. Set Template Identifier Attribute & Apply Theme Color Engine
+    // Update Section Headers according to language
+    const contactSectionHeader = document.querySelector('#contact-section .section-title');
+    if (contactSectionHeader) {
+        contactSectionHeader.textContent = isRtl ? 'معلومات الاتصال' : 'Contact Information';
+    }
+    const linksSectionHeader = document.querySelector('#links-section .section-title');
+    if (linksSectionHeader) {
+        linksSectionHeader.textContent = isRtl ? 'الروابط الهامة' : 'Featured Links';
+    }
+    const gallerySectionHeader = document.querySelector('#gallery-section .section-title');
+    if (gallerySectionHeader) {
+        gallerySectionHeader.textContent = isRtl ? 'معرض الصور' : 'Photo Gallery';
+    }
+
+    // 3. Set Template Identifier Attribute & Apply Theme Color Engine
     const templateId = mapTemplateId(data.templateId);
     profileContainer.setAttribute('data-template', templateId);
     applyThemePalette(data);
 
     // Inject Hero Card for Special Templates (Emergency Kids, Pet Rescue, Google Reviews)
-    renderTemplateHeroCard(data, templateId);
+    renderTemplateHeroCard(data, templateId, isRtl);
 
-    // 3. Cover Image
+    // 4. Cover Image
+    const coverImg = document.getElementById('cover-image');
     if (data.coverUri && data.coverUri.trim() !== '') {
-        const coverImg = document.getElementById('cover-image');
         coverImg.src = data.coverUri;
         coverImg.onload = () => coverImg.classList.remove('hidden');
+        coverImg.onerror = () => coverImg.classList.add('hidden');
+    } else {
+        coverImg.classList.add('hidden');
     }
 
-    // 4. Profile Photo & Initials Fallback
+    // 5. Profile Photo & Initials Fallback
     const photoImg = document.getElementById('profile-photo');
     const placeholder = document.getElementById('avatar-placeholder');
     const nameStr = data.name || data.title || 'SHOT User';
@@ -304,16 +364,18 @@ function renderProfile(data) {
         showAvatarInitials(nameStr);
     }
 
-    // 5. Name & Tagline
+    // 6. Name & Tagline
     document.getElementById('profile-name').textContent = nameStr;
     
+    const taglineEl = document.getElementById('profile-tagline');
     if (data.tagline && data.tagline.trim() !== '') {
-        const taglineEl = document.getElementById('profile-tagline');
         taglineEl.textContent = data.tagline;
         taglineEl.classList.remove('hidden');
+    } else {
+        taglineEl.classList.add('hidden');
     }
 
-    // 6. Role & Company
+    // 7. Role & Company
     const roleEl = document.getElementById('profile-role');
     const companyEl = document.getElementById('profile-company');
     const sepEl = document.getElementById('profile-company-separator');
@@ -326,50 +388,67 @@ function renderProfile(data) {
         roleEl.textContent = data.role;
         roleEl.classList.remove('hidden');
         hasRole = true;
+    } else {
+        roleEl.classList.add('hidden');
     }
 
     if (data.company && data.company.trim() !== '') {
         companyEl.textContent = data.company;
         companyEl.classList.remove('hidden');
         hasCompany = true;
+    } else {
+        companyEl.classList.add('hidden');
     }
 
     if (hasRole && hasCompany) {
         sepEl.classList.remove('hidden');
+    } else {
+        sepEl.classList.add('hidden');
     }
 
     if (hasRole || hasCompany) {
         roleCompanyContainer.classList.remove('hidden');
+    } else {
+        roleCompanyContainer.classList.add('hidden');
     }
 
-    // 7. Contact Section (respect showContact)
+    // 8. Contact Section (respect showContact)
     const showContact = data.showContact !== false;
     if (showContact) {
-        renderContactGrid(data);
+        renderContactGrid(data, isRtl);
+    } else {
+        document.getElementById('contact-section').classList.add('hidden');
     }
 
-    // 8. Custom Links Section (respect showLinks)
+    // 9. Custom Links Section (respect showLinks)
     const showLinks = data.showLinks !== false;
     if (showLinks) {
         renderCustomLinks(data);
+    } else {
+        document.getElementById('links-section').classList.add('hidden');
     }
 
-    // 9. Gallery Section (respect showGallery)
+    // 10. Gallery Section (respect showGallery)
     const showGallery = data.showGallery !== false;
     if (showGallery) {
         renderGallery(data);
+    } else {
+        document.getElementById('gallery-section').classList.add('hidden');
     }
 
-    // 10. Save vCard Button
+    // 11. Save vCard Button
     const saveVCardBtn = document.getElementById('save-vcard-btn');
     if (hasContactDetails(data)) {
         saveVCardBtn.classList.remove('hidden');
+        saveVCardBtn.textContent = isRtl ? 'حفظ جهة الاتصال' : 'Save vCard';
         saveVCardBtn.onclick = () => generateVCard(data);
+    } else {
+        saveVCardBtn.classList.add('hidden');
     }
 }
 
 // Render Template Special Hero Cards
-function renderTemplateHeroCard(data, templateId) {
+function renderTemplateHeroCard(data, templateId, isRtl = true) {
     let existingHero = document.getElementById('template-hero-card');
     if (existingHero) existingHero.remove();
 
@@ -381,10 +460,14 @@ function renderTemplateHeroCard(data, templateId) {
         hero.id = 'template-hero-card';
         hero.className = `template-hero-card ${templateId === 'children_1' ? 'emergency-kids' : 'adventurer-kids'}`;
         const phone = data.phone ? normalizePhone(data.phone) : '';
+        const titleText = templateId === 'children_1' ? (isRtl ? '🚨 هُوية طوارئ الطفل' : '🚨 KIDS SAFETY ID') : (isRtl ? '🎒 المغامر الصغير' : '🎒 JUNIOR ADVENTURER ID');
+        const subtitleText = templateId === 'children_1' ? (isRtl ? 'إذا تم العثور على الطفل منفصلاً عن ولي أمره، يرجى الاتصال فوراً!' : 'If found separated from guardian, please call immediately!') : (isRtl ? 'بطاقة اتصال الطوارئ وسلامة المدرّسة' : 'Emergency ICE Contact & School Safety Badge');
+        const btnText = isRtl ? '📞 الاتصال بولي الأمر / الحارس الآن' : '📞 CALL PARENT / GUARDIAN NOW';
+
         hero.innerHTML = `
-            <div class="hero-title">${templateId === 'children_1' ? '🚨 KIDS SAFETY ID' : '🎒 JUNIOR ADVENTURER ID'}</div>
-            <div class="hero-subtitle">${templateId === 'children_1' ? 'If found separated from guardian, please call immediately!' : 'Emergency ICE Contact & School Safety Badge'}</div>
-            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">📞 CALL PARENT / GUARDIAN NOW</a>` : ''}
+            <div class="hero-title">${titleText}</div>
+            <div class="hero-subtitle">${subtitleText}</div>
+            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">${btnText}</a>` : ''}
         `;
         profileBody.insertBefore(hero, profileBody.firstChild);
     } else if (templateId === 'pets_1' || templateId === 'pets_2') {
@@ -392,10 +475,14 @@ function renderTemplateHeroCard(data, templateId) {
         hero.id = 'template-hero-card';
         hero.className = `template-hero-card ${templateId === 'pets_1' ? 'rescue-pets' : 'companion-pets'}`;
         const phone = data.phone ? normalizePhone(data.phone) : '';
+        const titleText = templateId === 'pets_1' ? (isRtl ? '🐾 تاغ إنقاذ الأليف' : '🐾 PET RESCUE TAG') : (isRtl ? '🐾 بروفايل الأليف وبطاقة البيطري' : '🐾 PET PROFILE & VET CARD');
+        const subtitleText = templateId === 'pets_1' ? (isRtl ? 'إذا ضاع الأليف، يرجى الاتصال بالمالك فوراً!' : 'If lost, please contact owner immediately!') : (isRtl ? 'معلومات الهوية الطبية ومعلومات الاتصال بالطارئ' : 'Medical ID & Emergency Contact Info');
+        const btnText = isRtl ? '📞 الاتصال بالمالك / الطبيب فوراً' : '📞 CALL OWNER / VET IMMEDIATELY';
+
         hero.innerHTML = `
-            <div class="hero-title">${templateId === 'pets_1' ? '🐾 PET RESCUE TAG' : '🐾 PET PROFILE & VET CARD'}</div>
-            <div class="hero-subtitle">${templateId === 'pets_1' ? 'If lost, please contact owner immediately!' : 'Medical ID & Emergency Contact Info'}</div>
-            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">📞 CALL OWNER / VET IMMEDIATELY</a>` : ''}
+            <div class="hero-title">${titleText}</div>
+            <div class="hero-subtitle">${subtitleText}</div>
+            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">${btnText}</a>` : ''}
         `;
         profileBody.insertBefore(hero, profileBody.firstChild);
     } else if (templateId.startsWith('reviews_')) {
@@ -403,11 +490,15 @@ function renderTemplateHeroCard(data, templateId) {
         hero.id = 'template-hero-card';
         hero.className = 'template-hero-card review-5star';
         const reviewUrl = normalizeUrl(data.website || 'https://maps.google.com');
+        const titleText = templateId === 'reviews_2' ? (isRtl ? 'تقييمات النشاط التجاري المحلي' : 'Local Business Reviews') : (isRtl ? 'قيّمنا على جوجل 5 نجوم' : 'Rate Us On Google');
+        const subtitleText = templateId === 'reviews_2' ? (isRtl ? 'تقييمات مباشرة على خرائط جوجل لخدمة موثوقة' : 'Verified customer satisfaction & direct Google Maps reviews') : (isRtl ? 'انقر أدناه لترك تقييم 5 نجوم مميز!' : 'Tap below to leave us a 5-star review!');
+        const btnText = isRtl ? '⭐ كتابة تقييم 5 نجوم على جوجل' : '⭐ WRITE A 5-STAR REVIEW';
+
         hero.innerHTML = `
             <div class="hero-stars">⭐⭐⭐⭐⭐</div>
-            <div class="hero-title">${templateId === 'reviews_2' ? 'Local Business Reviews' : 'Rate Us On Google'}</div>
-            <div class="hero-subtitle">${templateId === 'reviews_2' ? 'Verified customer satisfaction & direct Google Maps reviews' : 'Tap below to leave us a 5-star review!'}</div>
-            <a href="${reviewUrl}" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn-white">⭐ WRITE A 5-STAR REVIEW</a>
+            <div class="hero-title">${titleText}</div>
+            <div class="hero-subtitle">${subtitleText}</div>
+            <a href="${reviewUrl}" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn-white">${btnText}</a>
         `;
         profileBody.insertBefore(hero, profileBody.firstChild);
     }
@@ -439,7 +530,7 @@ function hasContactDetails(data) {
 }
 
 // Render Contact Cards Grid
-function renderContactGrid(data) {
+function renderContactGrid(data, isRtl = true) {
     const contactGrid = document.getElementById('contact-grid');
     contactGrid.innerHTML = '';
     let count = 0;
@@ -447,39 +538,46 @@ function renderContactGrid(data) {
     // Phone
     if (data.phone && data.phone.trim() !== '') {
         const cleanPhone = normalizePhone(data.phone);
-        contactGrid.appendChild(createContactCard('الهاتف', data.phone, `tel:${cleanPhone}`, SVG_ICONS.phone));
+        const label = isRtl ? 'الهاتف' : 'Phone';
+        contactGrid.appendChild(createContactCard(label, data.phone, `tel:${cleanPhone}`, SVG_ICONS.phone));
         count++;
     }
 
     // WhatsApp
     if (data.whatsapp && data.whatsapp.trim() !== '') {
         const cleanWa = normalizePhone(data.whatsapp);
-        contactGrid.appendChild(createContactCard('واتساب', data.whatsapp, `https://wa.me/${cleanWa}`, SVG_ICONS.whatsapp));
+        const label = isRtl ? 'واتساب' : 'WhatsApp';
+        contactGrid.appendChild(createContactCard(label, data.whatsapp, `https://wa.me/${cleanWa}`, SVG_ICONS.whatsapp));
         count++;
     }
 
     // Email
     if (data.email && data.email.trim() !== '') {
-        contactGrid.appendChild(createContactCard('البريد الإلكتروني', data.email, `mailto:${data.email.trim()}`, SVG_ICONS.email));
+        const label = isRtl ? 'البريد الإلكتروني' : 'Email';
+        contactGrid.appendChild(createContactCard(label, data.email, `mailto:${data.email.trim()}`, SVG_ICONS.email));
         count++;
     }
 
     // Website
     if (data.website && data.website.trim() !== '') {
         const normUrl = normalizeUrl(data.website);
-        contactGrid.appendChild(createContactCard('الموقع الإلكتروني', data.website, normUrl, SVG_ICONS.website));
+        const label = isRtl ? 'الموقع الإلكتروني' : 'Website';
+        contactGrid.appendChild(createContactCard(label, data.website, normUrl, SVG_ICONS.website));
         count++;
     }
 
     // Address
     if (data.address && data.address.trim() !== '') {
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.address)}`;
-        contactGrid.appendChild(createContactCard('العنوان', data.address, mapsUrl, SVG_ICONS.location));
+        const label = isRtl ? 'العنوان' : 'Address';
+        contactGrid.appendChild(createContactCard(label, data.address, mapsUrl, SVG_ICONS.location));
         count++;
     }
 
     if (count > 0) {
         document.getElementById('contact-section').classList.remove('hidden');
+    } else {
+        document.getElementById('contact-section').classList.add('hidden');
     }
 }
 
@@ -522,7 +620,7 @@ function renderCustomLinks(data) {
     let validCount = 0;
 
     links.forEach((link) => {
-        const title = link.title || link.label || link.name || 'رابط';
+        const title = link.title || link.label || link.name || 'Link';
         const rawUrl = link.url || link.href;
 
         if (rawUrl && rawUrl.trim() !== '') {
@@ -548,6 +646,8 @@ function renderCustomLinks(data) {
 
     if (validCount > 0) {
         document.getElementById('links-section').classList.remove('hidden');
+    } else {
+        document.getElementById('links-section').classList.add('hidden');
     }
 }
 
@@ -600,6 +700,8 @@ function renderGallery(data) {
 
     if (validCount > 0) {
         document.getElementById('gallery-section').classList.remove('hidden');
+    } else {
+        document.getElementById('gallery-section').classList.add('hidden');
     }
 }
 
@@ -636,14 +738,14 @@ function setupShareEvent() {
         if (navigator.share) {
             navigator.share({
                 title: profileName,
-                text: `بروفايل ${profileName} على SHOT`,
+                text: `SHOT Profile: ${profileName}`,
                 url: shareUrl
             }).catch(() => {});
         } else {
             navigator.clipboard.writeText(shareUrl).then(() => {
-                showToast('تم نسخ رابط البروفايل إلى الحافظة');
+                showToast('Link copied to clipboard');
             }).catch(() => {
-                showToast('تعذر نسخ الرابط');
+                showToast('Failed to copy link');
             });
         }
     };
@@ -677,7 +779,7 @@ function generateVCard(profile) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast('تمت إضافة جهة الاتصال');
+    showToast('Contact Saved');
 }
 
 // Utility Helpers
