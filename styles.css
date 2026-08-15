@@ -514,14 +514,48 @@ body {
     color: #FFFFFF;
 }
 
+.template-hero-card.sentinel-kids {
+    background-color: #DC2626;
+    color: #FFFFFF;
+    border: 2px solid #EF4444;
+}
+
+.template-hero-card.campus-kids {
+    background-color: var(--primary-color);
+    color: var(--on-primary);
+    border-radius: var(--radius-lg);
+}
+
 .template-hero-card.review-5star {
     background-color: var(--primary-color);
     color: var(--on-primary);
 }
 
+.template-hero-card.review-storefront {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1E293B 100%);
+    color: #FFFFFF;
+}
+
+.template-hero-card.review-clinic {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    border: 2px solid var(--primary-color);
+}
+
 .hero-stars {
     font-size: 28px;
     margin-bottom: 6px;
+}
+
+.hero-badge-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 9999px;
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
 .hero-title {
@@ -565,6 +599,11 @@ body {
 .hero-btn-white {
     background-color: #FFFFFF;
     color: var(--text-main);
+}
+
+.hero-btn-gold {
+    background-color: #FBBF24;
+    color: #1E293B;
 }
 
 /* 1. Personal 1: Creator Spotlight */
@@ -827,6 +866,63 @@ body {
     border-radius: 8px;
 }
 
+/* 8b. Reviews 3: Storefront Showcase */
+.profile-container[data-template="reviews_3"] .cover-section {
+    height: 170px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1E293B 100%);
+}
+.profile-container[data-template="reviews_3"] .avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 20px;
+    border: 3px solid #FBBF24;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.profile-container[data-template="reviews_3"] .section-title {
+    border-bottom: 2px solid #FBBF24;
+    color: var(--primary-color);
+    font-size: 16px;
+    font-weight: 800;
+}
+.profile-container[data-template="reviews_3"] .contact-card {
+    border-radius: 16px;
+    border: 1px solid var(--primary-light);
+    background-color: var(--bg-color);
+}
+.profile-container[data-template="reviews_3"] .contact-icon-wrapper {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    border-radius: 12px;
+}
+
+/* 8c. Reviews 4: Local Clinic & Services */
+.profile-container[data-template="reviews_4"] .cover-section {
+    height: 150px;
+    background: linear-gradient(135deg, #0284C7 0%, #38BDF8 100%);
+}
+.profile-container[data-template="reviews_4"] .avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid var(--primary-color);
+    box-shadow: 0 4px 16px rgba(2, 132, 199, 0.2);
+}
+.profile-container[data-template="reviews_4"] .section-title {
+    border-bottom: 2px solid #0284C7;
+    color: #0369A1;
+    font-size: 16px;
+}
+.profile-container[data-template="reviews_4"] .contact-card {
+    border-radius: 14px;
+    border: 1px solid #BAE6FD;
+    background-color: #F0F9FF;
+}
+.profile-container[data-template="reviews_4"] .contact-icon-wrapper {
+    background-color: #0284C7;
+    color: #FFFFFF;
+    border-radius: 10px;
+}
+
 /* 9. Children 1: Kids Safety ID */
 .profile-container[data-template="children_1"] .cover-section {
     height: 140px;
@@ -888,6 +984,69 @@ body {
     background-color: #3B82F6;
     color: #FFFFFF;
     border-radius: 10px;
+}
+
+/* 10b. Children 3: Guardian ICE Sentinel */
+.profile-container[data-template="children_3"] .cover-section {
+    height: 140px;
+    background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+}
+.profile-container[data-template="children_3"] .avatar-wrapper {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 5px solid #DC2626;
+    box-shadow: 0 8px 30px rgba(220, 38, 38, 0.4);
+}
+.profile-container[data-template="children_3"] .section-title {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border-radius: 12px;
+    padding: 8px 16px;
+    border-bottom: none;
+    text-align: center;
+    font-weight: 800;
+    font-size: 16px;
+}
+.profile-container[data-template="children_3"] .contact-card {
+    border-radius: 20px;
+    border: 2px solid #FCA5A5;
+    background: #FFF5F5;
+    padding: 16px;
+}
+.profile-container[data-template="children_3"] .contact-icon-wrapper {
+    background-color: #DC2626;
+    color: #FFFFFF;
+    border-radius: 50%;
+}
+
+/* 10c. Children 4: Student Campus Smart Pass */
+.profile-container[data-template="children_4"] .cover-section {
+    height: 150px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #312E81 100%);
+}
+.profile-container[data-template="children_4"] .avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+    border: 4px solid #FFFFFF;
+    box-shadow: var(--shadow-md);
+}
+.profile-container[data-template="children_4"] .section-title {
+    border-bottom: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 16px;
+    font-weight: 800;
+}
+.profile-container[data-template="children_4"] .contact-card {
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+}
+.profile-container[data-template="children_4"] .contact-icon-wrapper {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    border-radius: 12px;
 }
 
 /* 11. Pets 1: Pet Tag & Rescue ID */
