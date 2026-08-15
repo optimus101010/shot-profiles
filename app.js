@@ -1,818 +1,1077 @@
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyC9NzA3Q_yZQaCxEmNq2o5GK9NflbFQXck",
-    authDomain: "shot-lello3d.firebaseapp.com",
-    projectId: "shot-lello3d",
-    storageBucket: "shot-lello3d.firebasestorage.app",
-    messagingSenderId: "125059907963",
-    appId: "1:125059907963:web:46a68c493fe16fd424fdde"
-};
-
-// Initialize Firebase
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
-
-// Centralized Deterministic Theme Color Engine (Matches Android Kotlin Math)
-const DEFAULT_PRIMARY_HEX = '#2563EB';
-
-function normalizeHex(hex) {
-    if (!hex || typeof hex !== 'string') return DEFAULT_PRIMARY_HEX;
-    let cleaned = hex.trim().replace('#', '');
-    if (cleaned.length === 3) {
-        cleaned = cleaned[0] + cleaned[0] + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2];
-    }
-    if (cleaned.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(cleaned)) {
-        return DEFAULT_PRIMARY_HEX;
-    }
-    return '#' + cleaned.toUpperCase();
+:root {
+    --primary-color: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #DBEAFE;
+    --primary-hover: #1D4ED8;
+    --accent-color: #0284C7;
+    --bg-color: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --surface-variant: #F1F5F9;
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --border-color: #E2E8F0;
+    --on-primary: #FFFFFF;
+    --gradient-start: #2563EB;
+    --gradient-end: #1D4ED8;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
 }
 
-function hexToRgb(hex) {
-    const norm = normalizeHex(hex);
-    const r = parseInt(norm.substring(1, 3), 16) / 255.0;
-    const g = parseInt(norm.substring(3, 5), 16) / 255.0;
-    const b = parseInt(norm.substring(5, 7), 16) / 255.0;
-    return [r, g, b];
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-function rgbToHsl(r, g, b) {
-    const maxVal = Math.max(r, g, b);
-    const minVal = Math.min(r, g, b);
-    let h = 0, s = 0;
-    const l = (maxVal + minVal) / 2.0;
-
-    if (maxVal !== minVal) {
-        const d = maxVal - minVal;
-        s = l > 0.5 ? d / (2.0 - maxVal - minVal) : d / (maxVal + minVal);
-        switch (maxVal) {
-            case r: h = (g - b) / d + (g < b ? 6.0 : 0.0); break;
-            case g: h = (b - r) / d + 2.0; break;
-            case b: h = (r - g) / d + 4.0; break;
-        }
-        h *= 60.0;
-    }
-    return [h, s, l];
+body {
+    font-family: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0;
 }
 
-function hslToHex(h, s, l) {
-    const clampedH = (h % 360.0 + 360.0) % 360.0;
-    const clampedS = Math.max(0.0, Math.min(1.0, s));
-    const clampedL = Math.max(0.0, Math.min(1.0, l));
-
-    const c = (1.0 - Math.abs(2.0 * clampedL - 1.0)) * clampedS;
-    const x = c * (1.0 - Math.abs((clampedH / 60.0) % 2.0 - 1.0));
-    const m = clampedL - c / 2.0;
-
-    let rP = 0, gP = 0, bP = 0;
-    if (clampedH < 60) { rP = c; gP = x; bP = 0; }
-    else if (clampedH < 120) { rP = x; gP = c; bP = 0; }
-    else if (clampedH < 180) { rP = 0; gP = c; bP = x; }
-    else if (clampedH < 240) { rP = 0; gP = x; bP = c; }
-    else if (clampedH < 300) { rP = x; gP = 0; bP = c; }
-    else { rP = c; gP = 0; bP = x; }
-
-    const r = Math.min(255, Math.max(0, Math.round((rP + m) * 255.0)));
-    const g = Math.min(255, Math.max(0, Math.round((gP + m) * 255.0)));
-    const b = Math.min(255, Math.max(0, Math.round((bP + m) * 255.0)));
-
-    const toHex = (num) => num.toString(16).padStart(2, '0').toUpperCase();
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+#app {
+    width: 100%;
+    max-width: 520px;
+    min-height: 100vh;
+    background-color: var(--card-bg);
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
 }
 
-function generatePalette(rawHex, isDark = false) {
-    const primary = normalizeHex(rawHex);
-    const [r, g, b] = hexToRgb(primary);
-    const [h, s, l] = rgbToHsl(r, g, b);
-
-    const primaryDark = hslToHex(h, s, Math.max(0.12, l - 0.18));
-    const primaryLight = hslToHex(h, Math.max(0.15, s * 0.75), Math.min(0.92, l + 0.35));
-
-    const accentH = (h + 30.0) % 360.0;
-    const accentS = Math.max(0.0, Math.min(1.0, s + 0.15));
-    const accentL = Math.max(0.40, Math.min(0.60, l));
-    const accent = hslToHex(accentH, accentS, accentL);
-
-    const relLuminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    const onPrimary = relLuminance < 0.45 ? '#FFFFFF' : '#0F172A';
-
-    if (!isDark) {
-        return {
-            primary,
-            primaryDark,
-            primaryLight,
-            accent,
-            background: hslToHex(h, Math.min(0.10, s), 0.98),
-            surface: '#FFFFFF',
-            surfaceVariant: hslToHex(h, Math.min(0.12, s), 0.94),
-            card: '#FFFFFF',
-            textPrimary: '#0F172A',
-            textSecondary: '#475569',
-            border: hslToHex(h, Math.min(0.15, s), 0.88),
-            onPrimary,
-            onBackground: '#0F172A',
-            gradientStart: primary,
-            gradientEnd: primaryDark
-        };
-    } else {
-        return {
-            primary,
-            primaryDark,
-            primaryLight,
-            accent,
-            background: hslToHex(h, Math.min(0.18, s), 0.07),
-            surface: hslToHex(h, Math.min(0.16, s), 0.12),
-            surfaceVariant: hslToHex(h, Math.min(0.16, s), 0.17),
-            card: hslToHex(h, Math.min(0.16, s), 0.12),
-            textPrimary: '#F8FAFC',
-            textSecondary: '#94A3B8',
-            border: hslToHex(h, Math.min(0.16, s), 0.22),
-            onPrimary,
-            onBackground: '#F8FAFC',
-            gradientStart: primary,
-            gradientEnd: primaryDark
-        };
-    }
+.hidden {
+    display: none !important;
 }
 
-function applyThemePalette(data) {
-    const rawHex = data.themeColorHex || '#2563EB';
-    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const palette = generatePalette(rawHex, isDark);
-
-    const root = document.documentElement;
-    root.style.setProperty('--primary-color', palette.primary);
-    root.style.setProperty('--primary-dark', palette.primaryDark);
-    root.style.setProperty('--primary-light', palette.primaryLight);
-    root.style.setProperty('--primary-hover', palette.primaryDark);
-    root.style.setProperty('--accent-color', palette.accent);
-    root.style.setProperty('--bg-color', palette.background);
-    root.style.setProperty('--card-bg', palette.surface);
-    root.style.setProperty('--surface-variant', palette.surfaceVariant);
-    root.style.setProperty('--text-main', palette.textPrimary);
-    root.style.setProperty('--text-muted', palette.textSecondary);
-    root.style.setProperty('--border-color', palette.border);
-    root.style.setProperty('--on-primary', palette.onPrimary);
-    root.style.setProperty('--gradient-start', palette.gradientStart);
-    root.style.setProperty('--gradient-end', palette.gradientEnd);
+/* State Containers (Loading, Error) */
+.state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 32px 24px;
+    text-align: center;
 }
 
-// SVG Icons Map
-const SVG_ICONS = {
-    phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`,
-    whatsapp: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>`,
-    email: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`,
-    website: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
-    location: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
-    link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`,
-    chevronLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>`
-};
-
-// Main Execution
-document.addEventListener('DOMContentLoaded', () => {
-    const profileId = getProfileIdFromUrl();
-    const source = getSourceFromUrl();
-    
-    if (!profileId) {
-        showError('رابط البروفايل غير صالح', 'يرجى التأكد من استخدام الرابط الصحيح كـ (?id=YOUR_ID).');
-        return;
-    }
-
-    db.collection('profiles').doc(profileId).get()
-        .then((doc) => {
-            if (!doc.exists) {
-                showError('هذا البروفايل غير متاح حاليًا', 'لم نتمكن من العثور على البروفايل المطلوب.');
-                return;
-            }
-            const data = doc.data();
-            renderProfile(data);
-
-            // Immediately increment analytics counters in Firestore
-            trackProfileOpen(profileId, source);
-        })
-        .catch((error) => {
-            console.error('Error fetching profile from Firestore:', error);
-            showError('تعذر تحميل البروفايل', 'حدث خطأ أثناء الاتصال بالخادم. حاول مرة أخرى.');
-        });
-
-    setupLightboxEvents();
-    setupShareEvent();
-});
-
-// Extract profileId from URL query string
-function getProfileIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('id');
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
 }
 
-// Extract optional source from URL query string (nfc, qr, etc.)
-function getSourceFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const source = urlParams.get('source');
-    return source ? source.toLowerCase().trim() : null;
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-// Increment profile analytics counters in Firestore
-function trackProfileOpen(profileId, source) {
-    const updateObj = {
-        viewsCount: firebase.firestore.FieldValue.increment(1)
-    };
-    if (source === 'nfc') {
-        updateObj.nfcOpensCount = firebase.firestore.FieldValue.increment(1);
-    } else if (source === 'qr') {
-        updateObj.qrOpensCount = firebase.firestore.FieldValue.increment(1);
-    }
-
-    db.collection('profiles').doc(profileId).update(updateObj)
-        .catch((error) => {
-            console.error('Error incrementing analytics counters in Firestore:', error);
-        });
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
 }
 
-// Display Error State
-function showError(title, message) {
-    document.getElementById('loading-state').classList.add('hidden');
-    document.getElementById('profile-container').classList.add('hidden');
-    
-    document.getElementById('error-title').textContent = title;
-    document.getElementById('error-message').textContent = message;
-    document.getElementById('error-state').classList.remove('hidden');
+.state-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 8px;
 }
 
-// Defined 14 CSS Template Styles
-const DEFINED_TEMPLATES = [
-    'personal_1', 'personal_2',
-    'business_1', 'business_2', 'business_3',
-    'reviews_1', 'reviews_2',
-    'children_1', 'children_2',
-    'pets_1', 'pets_2',
-    'executive_1', 'minimal_1', 'creative_1'
-];
-
-function mapTemplateId(rawId) {
-    if (!rawId) return 'personal_1';
-    const clean = rawId.trim().toLowerCase();
-    if (DEFINED_TEMPLATES.includes(clean)) return clean;
-    if (clean === 'executive' || clean === 't_1') return 'executive_1';
-    if (clean === 'minimal' || clean === 'modern') return 'minimal_1';
-    if (clean === 'creative' || clean === 'creator' || clean === 'personal_3') return 'creative_1';
-    if (clean === 'google_reviews' || clean === 'review' || clean === 'reviews' || clean === 'reviews_3' || clean === 't_2') return 'reviews_1';
-    if (clean === 't_3' || clean === 'personal') return 'personal_1';
-    if (clean === 'emerald' || clean === 'luxury' || clean === 't_4') return 'business_3';
-    if (clean === 'children_3' || clean === 'children' || clean === 'child' || clean === 'kids') return 'children_1';
-    if (clean === 'pets' || clean === 'pet' || clean === 'rescue') return 'pets_1';
-    return 'personal_1';
+.state-text {
+    font-size: 16px;
+    color: var(--text-muted);
 }
 
-function toggleTemplate(template) {
-    const profileContainer = document.getElementById('profile-container');
-    if (!profileContainer) return null;
-
-    let targetTemplate;
-
-    if (typeof template === 'string' && template.trim() !== '') {
-        targetTemplate = mapTemplateId(template);
-    } else {
-        const currentTemplate = profileContainer.getAttribute('data-template') || 'personal_1';
-        const currentIndex = DEFINED_TEMPLATES.indexOf(currentTemplate);
-        const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % DEFINED_TEMPLATES.length : 0;
-        targetTemplate = DEFINED_TEMPLATES[nextIndex];
-    }
-
-    profileContainer.setAttribute('data-template', targetTemplate);
-
-    if (window.currentProfileData) {
-        renderTemplateHeroCard(window.currentProfileData, targetTemplate);
-    }
-
-    return targetTemplate;
+/* Cover Section */
+.cover-section {
+    width: 100%;
+    height: 180px;
+    position: relative;
+    background-color: var(--primary-color);
+    overflow: hidden;
 }
 
-if (typeof window !== 'undefined') {
-    window.toggleTemplate = toggleTemplate;
-    window.switchTemplate = toggleTemplate;
-    window.setTemplate = toggleTemplate;
-    window.toggleTemplateAttribute = toggleTemplate;
-    window.DEFINED_TEMPLATES = DEFINED_TEMPLATES;
+.cover-gradient {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
-// Render Profile Data
-function renderProfile(data) {
-    window.currentProfileData = data;
-
-    // 1. Language & LTR/RTL Enforcement
-    const langCode = (data.profileLanguage || data.language || 'ar').toLowerCase();
-    const isRtl = langCode.startsWith('ar');
-    const dirStr = isRtl ? 'rtl' : 'ltr';
-    document.documentElement.setAttribute('dir', dirStr);
-
-    // 2. Hide Loading
-    document.getElementById('loading-state').classList.add('hidden');
-    document.getElementById('error-state').classList.add('hidden');
-    const profileContainer = document.getElementById('profile-container');
-    profileContainer.classList.remove('hidden');
-    profileContainer.setAttribute('dir', dirStr);
-
-    // Update Section Headers according to language
-    const contactSectionHeader = document.querySelector('#contact-section .section-title');
-    if (contactSectionHeader) {
-        contactSectionHeader.textContent = isRtl ? 'معلومات الاتصال' : 'Contact Information';
-    }
-    const linksSectionHeader = document.querySelector('#links-section .section-title');
-    if (linksSectionHeader) {
-        linksSectionHeader.textContent = isRtl ? 'الروابط الهامة' : 'Featured Links';
-    }
-    const gallerySectionHeader = document.querySelector('#gallery-section .section-title');
-    if (gallerySectionHeader) {
-        gallerySectionHeader.textContent = isRtl ? 'معرض الصور' : 'Photo Gallery';
-    }
-
-    // 3. Set Template Identifier Attribute & Apply Theme Color Engine
-    const templateId = mapTemplateId(data.templateId);
-    profileContainer.setAttribute('data-template', templateId);
-    applyThemePalette(data);
-
-    // Inject Hero Card for Special Templates (Emergency Kids, Pet Rescue, Google Reviews)
-    renderTemplateHeroCard(data, templateId, isRtl);
-
-    // 4. Cover Image
-    const coverImg = document.getElementById('cover-image');
-    if (data.coverUri && data.coverUri.trim() !== '') {
-        coverImg.src = data.coverUri;
-        coverImg.onload = () => coverImg.classList.remove('hidden');
-        coverImg.onerror = () => coverImg.classList.add('hidden');
-    } else {
-        coverImg.classList.add('hidden');
-    }
-
-    // 5. Profile Photo & Initials Fallback
-    const photoImg = document.getElementById('profile-photo');
-    const placeholder = document.getElementById('avatar-placeholder');
-    const nameStr = data.name || data.title || 'SHOT User';
-
-    if (data.photoUri && data.photoUri.trim() !== '') {
-        photoImg.src = data.photoUri;
-        photoImg.onload = () => {
-            photoImg.classList.remove('hidden');
-            placeholder.classList.add('hidden');
-        };
-        photoImg.onerror = () => {
-            showAvatarInitials(nameStr);
-        };
-    } else {
-        showAvatarInitials(nameStr);
-    }
-
-    // 6. Name & Tagline
-    document.getElementById('profile-name').textContent = nameStr;
-    
-    const taglineEl = document.getElementById('profile-tagline');
-    if (data.tagline && data.tagline.trim() !== '') {
-        taglineEl.textContent = data.tagline;
-        taglineEl.classList.remove('hidden');
-    } else {
-        taglineEl.classList.add('hidden');
-    }
-
-    // 7. Role & Company
-    const roleEl = document.getElementById('profile-role');
-    const companyEl = document.getElementById('profile-company');
-    const sepEl = document.getElementById('profile-company-separator');
-    const roleCompanyContainer = document.getElementById('profile-role-company');
-
-    let hasRole = false;
-    let hasCompany = false;
-
-    if (data.role && data.role.trim() !== '') {
-        roleEl.textContent = data.role;
-        roleEl.classList.remove('hidden');
-        hasRole = true;
-    } else {
-        roleEl.classList.add('hidden');
-    }
-
-    if (data.company && data.company.trim() !== '') {
-        companyEl.textContent = data.company;
-        companyEl.classList.remove('hidden');
-        hasCompany = true;
-    } else {
-        companyEl.classList.add('hidden');
-    }
-
-    if (hasRole && hasCompany) {
-        sepEl.classList.remove('hidden');
-    } else {
-        sepEl.classList.add('hidden');
-    }
-
-    if (hasRole || hasCompany) {
-        roleCompanyContainer.classList.remove('hidden');
-    } else {
-        roleCompanyContainer.classList.add('hidden');
-    }
-
-    // 8. Contact Section (respect showContact)
-    const showContact = data.showContact !== false;
-    if (showContact) {
-        renderContactGrid(data, isRtl);
-    } else {
-        document.getElementById('contact-section').classList.add('hidden');
-    }
-
-    // 9. Custom Links Section (respect showLinks)
-    const showLinks = data.showLinks !== false;
-    if (showLinks) {
-        renderCustomLinks(data);
-    } else {
-        document.getElementById('links-section').classList.add('hidden');
-    }
-
-    // 10. Gallery Section (respect showGallery)
-    const showGallery = data.showGallery !== false;
-    if (showGallery) {
-        renderGallery(data);
-    } else {
-        document.getElementById('gallery-section').classList.add('hidden');
-    }
-
-    // 11. Save vCard Button
-    const saveVCardBtn = document.getElementById('save-vcard-btn');
-    if (hasContactDetails(data)) {
-        saveVCardBtn.classList.remove('hidden');
-        saveVCardBtn.textContent = isRtl ? 'حفظ جهة الاتصال' : 'Save vCard';
-        saveVCardBtn.onclick = () => generateVCard(data);
-    } else {
-        saveVCardBtn.classList.add('hidden');
-    }
+.cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
-// Render Template Special Hero Cards
-function renderTemplateHeroCard(data, templateId, isRtl = true) {
-    let existingHero = document.getElementById('template-hero-card');
-    if (existingHero) existingHero.remove();
-
-    const profileBody = document.querySelector('.profile-body');
-    if (!profileBody) return;
-
-    if (templateId === 'children_1' || templateId === 'children_2') {
-        const hero = document.createElement('div');
-        hero.id = 'template-hero-card';
-        hero.className = `template-hero-card ${templateId === 'children_1' ? 'emergency-kids' : 'adventurer-kids'}`;
-        const phone = data.phone ? normalizePhone(data.phone) : '';
-        const titleText = templateId === 'children_1' ? (isRtl ? '🚨 هُوية طوارئ الطفل' : '🚨 KIDS SAFETY ID') : (isRtl ? '🎒 المغامر الصغير' : '🎒 JUNIOR ADVENTURER ID');
-        const subtitleText = templateId === 'children_1' ? (isRtl ? 'إذا تم العثور على الطفل منفصلاً عن ولي أمره، يرجى الاتصال فوراً!' : 'If found separated from guardian, please call immediately!') : (isRtl ? 'بطاقة اتصال الطوارئ وسلامة المدرّسة' : 'Emergency ICE Contact & School Safety Badge');
-        const btnText = isRtl ? '📞 الاتصال بولي الأمر / الحارس الآن' : '📞 CALL PARENT / GUARDIAN NOW';
-
-        hero.innerHTML = `
-            <div class="hero-title">${titleText}</div>
-            <div class="hero-subtitle">${subtitleText}</div>
-            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">${btnText}</a>` : ''}
-        `;
-        profileBody.insertBefore(hero, profileBody.firstChild);
-    } else if (templateId === 'pets_1' || templateId === 'pets_2') {
-        const hero = document.createElement('div');
-        hero.id = 'template-hero-card';
-        hero.className = `template-hero-card ${templateId === 'pets_1' ? 'rescue-pets' : 'companion-pets'}`;
-        const phone = data.phone ? normalizePhone(data.phone) : '';
-        const titleText = templateId === 'pets_1' ? (isRtl ? '🐾 تاغ إنقاذ الأليف' : '🐾 PET RESCUE TAG') : (isRtl ? '🐾 بروفايل الأليف وبطاقة البيطري' : '🐾 PET PROFILE & VET CARD');
-        const subtitleText = templateId === 'pets_1' ? (isRtl ? 'إذا ضاع الأليف، يرجى الاتصال بالمالك فوراً!' : 'If lost, please contact owner immediately!') : (isRtl ? 'معلومات الهوية الطبية ومعلومات الاتصال بالطارئ' : 'Medical ID & Emergency Contact Info');
-        const btnText = isRtl ? '📞 الاتصال بالمالك / الطبيب فوراً' : '📞 CALL OWNER / VET IMMEDIATELY';
-
-        hero.innerHTML = `
-            <div class="hero-title">${titleText}</div>
-            <div class="hero-subtitle">${subtitleText}</div>
-            ${phone ? `<a href="tel:${phone}" class="hero-btn hero-btn-green">${btnText}</a>` : ''}
-        `;
-        profileBody.insertBefore(hero, profileBody.firstChild);
-    } else if (templateId.startsWith('reviews_')) {
-        const hero = document.createElement('div');
-        hero.id = 'template-hero-card';
-        hero.className = 'template-hero-card review-5star';
-        const reviewUrl = normalizeUrl(data.website || 'https://maps.google.com');
-        const titleText = templateId === 'reviews_2' ? (isRtl ? 'تقييمات النشاط التجاري المحلي' : 'Local Business Reviews') : (isRtl ? 'قيّمنا على جوجل 5 نجوم' : 'Rate Us On Google');
-        const subtitleText = templateId === 'reviews_2' ? (isRtl ? 'تقييمات مباشرة على خرائط جوجل لخدمة موثوقة' : 'Verified customer satisfaction & direct Google Maps reviews') : (isRtl ? 'انقر أدناه لترك تقييم 5 نجوم مميز!' : 'Tap below to leave us a 5-star review!');
-        const btnText = isRtl ? '⭐ كتابة تقييم 5 نجوم على جوجل' : '⭐ WRITE A 5-STAR REVIEW';
-
-        hero.innerHTML = `
-            <div class="hero-stars">⭐⭐⭐⭐⭐</div>
-            <div class="hero-title">${titleText}</div>
-            <div class="hero-subtitle">${subtitleText}</div>
-            <a href="${reviewUrl}" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn-white">${btnText}</a>
-        `;
-        profileBody.insertBefore(hero, profileBody.firstChild);
-    }
+/* Profile Header */
+.profile-header {
+    padding: 0 24px 20px 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: -60px;
 }
 
-// Show avatar initials
-function showAvatarInitials(name) {
-    document.getElementById('profile-photo').classList.add('hidden');
-    const placeholder = document.getElementById('avatar-placeholder');
-    const initialsEl = document.getElementById('avatar-initials');
-    
-    const parts = name.trim().split(' ').filter(p => p.length > 0);
-    let initials = '';
-    if (parts.length >= 2) {
-        initials = parts[0][0] + parts[1][0];
-    } else if (parts.length === 1) {
-        initials = parts[0][0];
-    } else {
-        initials = 'S';
-    }
-    
-    initialsEl.textContent = initials.toUpperCase();
-    placeholder.classList.remove('hidden');
+.avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-full);
+    border: 4px solid var(--card-bg);
+    box-shadow: var(--shadow-md);
+    background-color: var(--card-bg);
+    margin-bottom: 16px;
+    overflow: hidden;
 }
 
-// Check if profile has enough contact details for vCard
-function hasContactDetails(data) {
-    return !!(data.name || data.phone || data.whatsapp || data.email || data.company || data.address || data.website);
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-// Render Contact Cards Grid
-function renderContactGrid(data, isRtl = true) {
-    const contactGrid = document.getElementById('contact-grid');
-    contactGrid.innerHTML = '';
-    let count = 0;
-
-    // Phone
-    if (data.phone && data.phone.trim() !== '') {
-        const cleanPhone = normalizePhone(data.phone);
-        const label = isRtl ? 'الهاتف' : 'Phone';
-        contactGrid.appendChild(createContactCard(label, data.phone, `tel:${cleanPhone}`, SVG_ICONS.phone));
-        count++;
-    }
-
-    // WhatsApp
-    if (data.whatsapp && data.whatsapp.trim() !== '') {
-        const cleanWa = normalizePhone(data.whatsapp);
-        const label = isRtl ? 'واتساب' : 'WhatsApp';
-        contactGrid.appendChild(createContactCard(label, data.whatsapp, `https://wa.me/${cleanWa}`, SVG_ICONS.whatsapp));
-        count++;
-    }
-
-    // Email
-    if (data.email && data.email.trim() !== '') {
-        const label = isRtl ? 'البريد الإلكتروني' : 'Email';
-        contactGrid.appendChild(createContactCard(label, data.email, `mailto:${data.email.trim()}`, SVG_ICONS.email));
-        count++;
-    }
-
-    // Website
-    if (data.website && data.website.trim() !== '') {
-        const normUrl = normalizeUrl(data.website);
-        const label = isRtl ? 'الموقع الإلكتروني' : 'Website';
-        contactGrid.appendChild(createContactCard(label, data.website, normUrl, SVG_ICONS.website));
-        count++;
-    }
-
-    // Address
-    if (data.address && data.address.trim() !== '') {
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.address)}`;
-        const label = isRtl ? 'العنوان' : 'Address';
-        contactGrid.appendChild(createContactCard(label, data.address, mapsUrl, SVG_ICONS.location));
-        count++;
-    }
-
-    if (count > 0) {
-        document.getElementById('contact-section').classList.remove('hidden');
-    } else {
-        document.getElementById('contact-section').classList.add('hidden');
-    }
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: var(--on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 800;
 }
 
-// Create single contact card
-function createContactCard(label, value, href, iconSvg) {
-    const a = document.createElement('a');
-    a.className = 'contact-card';
-    a.href = href;
-    a.target = href.startsWith('http') ? '_blank' : '_self';
-    a.rel = 'noopener noreferrer';
-
-    a.innerHTML = `
-        <div class="contact-icon-wrapper">${iconSvg}</div>
-        <div class="contact-details">
-            <span class="contact-label">${label}</span>
-            <span class="contact-value">${escapeHtml(value)}</span>
-        </div>
-    `;
-    return a;
+.profile-info {
+    width: 100%;
+    margin-bottom: 20px;
 }
 
-// Render Custom Links
-function renderCustomLinks(data) {
-    const linksListContainer = document.getElementById('links-list');
-    linksListContainer.innerHTML = '';
+.profile-name {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
 
-    let links = [];
+.profile-tagline {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
 
-    if (Array.isArray(data.customLinks) && data.customLinks.length > 0) {
-        links = data.customLinks;
-    } else if (data.customLinksJson && typeof data.customLinksJson === 'string') {
-        try {
-            const parsed = JSON.parse(data.customLinksJson);
-            if (Array.isArray(parsed)) links = parsed;
-        } catch (e) {
-            console.warn('Could not parse customLinksJson:', e);
-        }
+.profile-role-company {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.role-badge {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.separator {
+    color: var(--text-muted);
+}
+
+.company-text {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.primary-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    flex: 1;
+    max-width: 220px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--on-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--border-color);
+}
+
+.btn-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Profile Body */
+.profile-body {
+    padding: 0 20px 24px 20px;
+    flex: 1;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--primary-light);
+}
+
+/* Contact Grid */
+.contact-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.contact-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+}
+
+.contact-card:hover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-light);
+    transform: translateX(-2px);
+}
+
+.contact-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.contact-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.contact-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.contact-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: ltr;
+    text-align: right;
+}
+
+/* Links List */
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.link-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.link-button:hover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.link-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.link-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
+}
+
+.chevron-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+}
+
+/* Gallery Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.gallery-item {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    background-color: var(--border-color);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.08);
+}
+
+/* Lightbox */
+.lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-caption {
+    color: #FFFFFF;
+    margin-top: 16px;
+    font-size: 16px;
+    text-align: center;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #FFFFFF;
+    font-size: 36px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* Footer */
+.profile-footer {
+    text-align: center;
+    padding: 20px;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.profile-footer strong {
+    color: var(--primary-color);
+}
+
+/* ==========================================================================
+   TEMPLATE-SPECIFIC DESIGN TOKENS & STYLES (14 DISTINCT TEMPLATES)
+   ========================================================================== */
+
+/* Hero Banner Cards (Emergency / Reviews) */
+.template-hero-card {
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.template-hero-card.emergency-kids {
+    background-color: #DC2626;
+    color: #FFFFFF;
+}
+
+.template-hero-card.adventurer-kids {
+    background-color: #2563EB;
+    color: #FFFFFF;
+}
+
+.template-hero-card.rescue-pets {
+    background-color: #D97706;
+    color: #FFFFFF;
+}
+
+.template-hero-card.companion-pets {
+    background-color: #059669;
+    color: #FFFFFF;
+}
+
+.template-hero-card.review-5star {
+    background-color: var(--primary-color);
+    color: var(--on-primary);
+}
+
+.hero-stars {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.hero-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.hero-subtitle {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 16px;
+}
+
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-full);
+    font-weight: 800;
+    font-size: 15px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease;
+}
+
+.hero-btn:active {
+    transform: scale(0.98);
+}
+
+.hero-btn-green {
+    background-color: #16A34A;
+    color: #FFFFFF;
+}
+
+.hero-btn-white {
+    background-color: #FFFFFF;
+    color: var(--text-main);
+}
+
+/* 1. Personal 1: Creator Spotlight */
+.profile-container[data-template="personal_1"] .cover-section {
+    height: 200px;
+}
+.profile-container[data-template="personal_1"] .avatar-wrapper {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 4px solid var(--primary-color);
+    box-shadow: 0 0 0 6px var(--primary-light), 0 8px 20px rgba(0,0,0,0.15);
+}
+.profile-container[data-template="personal_1"] .section-title {
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 3px solid var(--primary-color);
+}
+.profile-container[data-template="personal_1"] .contact-card {
+    border-radius: 16px;
+    border: 1px solid var(--primary-light);
+    background: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-color) 100%);
+}
+.profile-container[data-template="personal_1"] .link-button {
+    border-radius: 9999px;
+    padding: 14px 22px;
+    font-weight: 800;
+    background-color: var(--primary-color);
+    color: var(--on-primary);
+}
+
+/* 2. Personal 2: Minimal Bio */
+.profile-container[data-template="personal_2"] .cover-section {
+    height: 90px;
+    background: var(--surface-variant);
+    opacity: 0.6;
+}
+.profile-container[data-template="personal_2"] .profile-header {
+    margin-top: -45px;
+    text-align: center;
+}
+.profile-container[data-template="personal_2"] .avatar-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+.profile-container[data-template="personal_2"] .profile-name {
+    font-size: 26px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+}
+.profile-container[data-template="personal_2"] .section-title {
+    border-bottom: none;
+    text-align: center;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    padding-bottom: 4px;
+}
+.profile-container[data-template="personal_2"] .contact-card {
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    padding: 12px 4px;
+}
+.profile-container[data-template="personal_2"] .link-button {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    font-weight: 600;
+}
+
+/* 3. Creative 1: Creative Studio */
+.profile-container[data-template="creative_1"] .cover-section {
+    height: 220px;
+    background: radial-gradient(circle at top right, var(--primary-color), var(--accent-color), #EC4899);
+}
+.profile-container[data-template="creative_1"] .avatar-wrapper {
+    width: 125px;
+    height: 125px;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    border: 4px solid var(--card-bg);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+}
+.profile-container[data-template="creative_1"] .section-title {
+    border-bottom: 3px dashed var(--accent-color);
+    font-size: 18px;
+    color: var(--primary-color);
+}
+.profile-container[data-template="creative_1"] .contact-card {
+    border-radius: 20px;
+    border: 2px solid var(--accent-color);
+    transition: transform 0.2s ease;
+}
+.profile-container[data-template="creative_1"] .contact-card:hover {
+    transform: scale(1.02);
+}
+.profile-container[data-template="creative_1"] .link-button {
+    border-radius: 20px 4px 20px 4px;
+    border: 2px solid var(--primary-color);
+    background-color: var(--primary-light);
+}
+
+/* 4. Business 1: Executive Pro */
+.profile-container[data-template="business_1"] .cover-section {
+    height: 160px;
+    background: linear-gradient(135deg, #0F172A 0%, var(--primary-dark) 100%);
+}
+.profile-container[data-template="business_1"] .avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: var(--radius-md);
+    border: 3px solid var(--primary-color);
+    box-shadow: var(--shadow-lg);
+}
+.profile-container[data-template="business_1"] .profile-name {
+    font-size: 24px;
+    font-weight: 800;
+}
+.profile-container[data-template="business_1"] .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+.profile-container[data-template="business_1"] .contact-card {
+    border-radius: 8px;
+    border-right: 4px solid var(--primary-color);
+    background-color: var(--surface-variant);
+}
+
+/* 5. Business 2: Corporate Minimal */
+.profile-container[data-template="business_2"] .cover-section {
+    height: 120px;
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+.profile-container[data-template="business_2"] .avatar-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+    border: 3px solid var(--card-bg);
+    box-shadow: var(--shadow-md);
+}
+.profile-container[data-template="business_2"] .section-title {
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.profile-container[data-template="business_2"] .contact-card {
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-color);
+    padding: 10px 14px;
+}
+
+/* 6. Business 3: Boutique Luxe */
+.profile-container[data-template="business_3"] {
+    border: 2px solid var(--primary-color);
+    outline: 2px solid var(--accent-color);
+    outline-offset: -8px;
+    border-radius: var(--radius-lg);
+    background: #FAF9F6;
+}
+.profile-container[data-template="business_3"] .cover-section {
+    height: 190px;
+    background: linear-gradient(135deg, #064E3B 0%, #047857 50%, #059669 100%);
+}
+.profile-container[data-template="business_3"] .avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #D4AF37;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+.profile-container[data-template="business_3"] .profile-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: #064E3B;
+    letter-spacing: 0.5px;
+}
+.profile-container[data-template="business_3"] .section-title {
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #D4AF37;
+    border-bottom: 1px solid #D4AF37;
+    text-align: center;
+}
+.profile-container[data-template="business_3"] .contact-card {
+    border-radius: 24px;
+    border: 1px solid #E5E7EB;
+    background: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+/* 7. Reviews 1: 5-Star Review Tap */
+.profile-container[data-template="reviews_1"] .cover-section {
+    height: 150px;
+    background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+}
+.profile-container[data-template="reviews_1"] .avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid #F59E0B;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+}
+.profile-container[data-template="reviews_1"] .section-title {
+    text-align: center;
+    color: #1E40AF;
+    border-bottom: 2px solid #F59E0B;
+    font-size: 17px;
+}
+.profile-container[data-template="reviews_1"] .contact-card {
+    border-radius: 16px;
+    border: 2px solid var(--primary-light);
+    background: #FFFFFF;
+    box-shadow: var(--shadow-sm);
+}
+.profile-container[data-template="reviews_1"] .link-button {
+    border-radius: 16px;
+    border: 2px solid #F59E0B;
+    background-color: #FEF3C7;
+    color: #78350F;
+    font-weight: 800;
+}
+
+/* 8. Reviews 2: Local Business Review */
+.profile-container[data-template="reviews_2"] .cover-section {
+    height: 160px;
+    background: linear-gradient(225deg, #0F766E 0%, #14B8A6 100%);
+}
+.profile-container[data-template="reviews_2"] .avatar-wrapper {
+    width: 115px;
+    height: 115px;
+    border-radius: 16px;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+.profile-container[data-template="reviews_2"] .section-title {
+    border-bottom: 2px solid #14B8A6;
+    color: #0F766E;
+    font-size: 16px;
+}
+.profile-container[data-template="reviews_2"] .contact-card {
+    border-radius: 12px;
+    border: 1px solid #CCFBF1;
+    background-color: #F0FDFA;
+}
+.profile-container[data-template="reviews_2"] .contact-icon-wrapper {
+    background-color: #0F766E;
+    color: #FFFFFF;
+    border-radius: 8px;
+}
+
+/* 9. Children 1: Kids Safety ID */
+.profile-container[data-template="children_1"] .cover-section {
+    height: 140px;
+    background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+}
+.profile-container[data-template="children_1"] .avatar-wrapper {
+    width: 125px;
+    height: 125px;
+    border-radius: 36px;
+    border: 5px solid #FFFFFF;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+}
+.profile-container[data-template="children_1"] .section-title {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border-radius: 12px;
+    padding: 8px 16px;
+    border-bottom: none;
+    text-align: center;
+    font-size: 16px;
+}
+.profile-container[data-template="children_1"] .contact-card {
+    border-radius: 20px;
+    border: 2px solid #FCA5A5;
+    background: #FFF5F5;
+    padding: 16px;
+}
+.profile-container[data-template="children_1"] .contact-icon-wrapper {
+    background-color: #EF4444;
+    color: #FFFFFF;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+}
+
+/* 10. Children 2: Junior Adventurer */
+.profile-container[data-template="children_2"] .cover-section {
+    height: 150px;
+    background: repeating-linear-gradient(45deg, #3B82F6, #3B82F6 15px, #2563EB 15px, #2563EB 30px);
+}
+.profile-container[data-template="children_2"] .avatar-wrapper {
+    width: 115px;
+    height: 115px;
+    border-radius: 28px 8px 28px 8px;
+    border: 4px solid #F59E0B;
+    box-shadow: var(--shadow-md);
+}
+.profile-container[data-template="children_2"] .section-title {
+    border-bottom: 3px solid #F59E0B;
+    color: #1E40AF;
+    font-size: 17px;
+}
+.profile-container[data-template="children_2"] .contact-card {
+    border-radius: 14px;
+    border: 2px solid #93C5FD;
+    background: #EFF6FF;
+}
+.profile-container[data-template="children_2"] .contact-icon-wrapper {
+    background-color: #3B82F6;
+    color: #FFFFFF;
+    border-radius: 10px;
+}
+
+/* 11. Pets 1: Pet Tag & Rescue ID */
+.profile-container[data-template="pets_1"] .cover-section {
+    height: 145px;
+    background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+}
+.profile-container[data-template="pets_1"] .avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50% 20% 50% 20%;
+    border: 4px solid #FFFFFF;
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
+}
+.profile-container[data-template="pets_1"] .section-title {
+    background-color: #FEF3C7;
+    color: #92400E;
+    border-radius: 10px;
+    padding: 6px 14px;
+    border-bottom: none;
+    font-size: 15px;
+    text-align: center;
+}
+.profile-container[data-template="pets_1"] .contact-card {
+    border-radius: 14px;
+    border-right: 6px solid #D97706;
+    border-left: 1px solid #FDE68A;
+    background-color: #FFFBEB;
+}
+.profile-container[data-template="pets_1"] .contact-icon-wrapper {
+    background-color: #D97706;
+    color: #FFFFFF;
+    border-radius: 50%;
+}
+
+/* 12. Pets 2: Pawsome Companion */
+.profile-container[data-template="pets_2"] .cover-section {
+    height: 155px;
+    background: linear-gradient(135deg, #059669 0%, #34D399 100%);
+}
+.profile-container[data-template="pets_2"] .avatar-wrapper {
+    width: 115px;
+    height: 115px;
+    border-radius: 60px 60px 16px 16px;
+    border: 4px solid #FFFFFF;
+    box-shadow: var(--shadow-md);
+}
+.profile-container[data-template="pets_2"] .section-title {
+    border-bottom: 2px solid #059669;
+    color: #065F46;
+    font-size: 16px;
+}
+.profile-container[data-template="pets_2"] .contact-card {
+    border-radius: 18px;
+    border: 1px solid #A7F3D0;
+    background-color: #ECFDF5;
+}
+.profile-container[data-template="pets_2"] .contact-icon-wrapper {
+    background-color: #059669;
+    color: #FFFFFF;
+    border-radius: 12px;
+}
+
+/* 13. Executive 1: Executive Suite */
+.profile-container[data-template="executive_1"] {
+    background-color: #0F172A;
+    color: #F8FAFC;
+}
+.profile-container[data-template="executive_1"] .cover-section {
+    height: 210px;
+    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+}
+.profile-container[data-template="executive_1"] .avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 8px;
+    border: 2px solid #CBD5E1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.profile-container[data-template="executive_1"] .profile-name {
+    color: #F8FAFC;
+    font-weight: 800;
+    font-size: 26px;
+}
+.profile-container[data-template="executive_1"] .profile-tagline {
+    color: #94A3B8;
+}
+.profile-container[data-template="executive_1"] .company-text {
+    color: #E2E8F0;
+}
+.profile-container[data-template="executive_1"] .section-title {
+    border-bottom: 1px solid #334155;
+    color: #38BDF8;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 13px;
+}
+.profile-container[data-template="executive_1"] .contact-card {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    color: #F8FAFC;
+}
+.profile-container[data-template="executive_1"] .contact-value {
+    color: #F8FAFC;
+}
+.profile-container[data-template="executive_1"] .contact-icon-wrapper {
+    background-color: #0F172A;
+    color: #38BDF8;
+}
+
+/* 14. Minimal 1: Minimalist Pro */
+.profile-container[data-template="minimal_1"] .cover-section {
+    display: none;
+}
+.profile-container[data-template="minimal_1"] .profile-header {
+    margin-top: 0;
+    padding-top: 32px;
+    border-bottom: 2px solid #000000;
+}
+.profile-container[data-template="minimal_1"] .avatar-wrapper {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: 1px solid #000000;
+    box-shadow: none;
+}
+.profile-container[data-template="minimal_1"] .profile-name {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+}
+.profile-container[data-template="minimal_1"] .section-title {
+    border-bottom: 2px solid #000000;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #000000;
+}
+.profile-container[data-template="minimal_1"] .contact-card {
+    border: 1px solid #000000;
+    border-radius: 0;
+    background: #FFFFFF;
+    box-shadow: none;
+}
+.profile-container[data-template="minimal_1"] .btn-primary {
+    border-radius: 0;
+    background-color: #000000;
+    color: #FFFFFF;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* Children & Pets Emergency Call Buttons */
+.emergency-call-bar {
+    width: 100%;
+    margin-top: 16px;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text-main);
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    transition: opacity 0.3s ease;
+}
+
+@media (min-width: 640px) {
+    body {
+        padding: 40px 0;
     }
-
-    let validCount = 0;
-
-    links.forEach((link) => {
-        const title = link.title || link.label || link.name || 'Link';
-        const rawUrl = link.url || link.href;
-
-        if (rawUrl && rawUrl.trim() !== '') {
-            const normUrl = normalizeUrl(rawUrl);
-            const a = document.createElement('a');
-            a.className = 'link-button';
-            a.href = normUrl;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-
-            a.innerHTML = `
-                <div class="link-left">
-                    <span class="link-icon">${SVG_ICONS.link}</span>
-                    <span>${escapeHtml(title)}</span>
-                </div>
-                <span class="chevron-icon">${SVG_ICONS.chevronLeft}</span>
-            `;
-
-            linksListContainer.appendChild(a);
-            validCount++;
-        }
-    });
-
-    if (validCount > 0) {
-        document.getElementById('links-section').classList.remove('hidden');
-    } else {
-        document.getElementById('links-section').classList.add('hidden');
+    #app {
+        border-radius: var(--radius-lg);
+        min-height: auto;
     }
-}
-
-// Render Gallery Grid
-function renderGallery(data) {
-    const galleryGrid = document.getElementById('gallery-grid');
-    galleryGrid.innerHTML = '';
-
-    let items = [];
-
-    if (Array.isArray(data.gallery) && data.gallery.length > 0) {
-        items = data.gallery;
-    } else if (data.galleryJson && typeof data.galleryJson === 'string') {
-        try {
-            const parsed = JSON.parse(data.galleryJson);
-            if (Array.isArray(parsed)) items = parsed;
-        } catch (e) {
-            console.warn('Could not parse galleryJson:', e);
-        }
-    }
-
-    let validCount = 0;
-
-    items.forEach((item) => {
-        let imgUrl = '';
-        let caption = '';
-
-        if (typeof item === 'string') {
-            imgUrl = item;
-        } else if (item && typeof item === 'object') {
-            imgUrl = item.imageUrl || item.url || item.src || '';
-            caption = item.caption || item.title || '';
-        }
-
-        if (imgUrl && imgUrl.trim() !== '') {
-            const div = document.createElement('div');
-            div.className = 'gallery-item';
-
-            const img = document.createElement('img');
-            img.src = imgUrl;
-            img.alt = caption || 'Gallery Image';
-            img.loading = 'lazy';
-
-            div.onclick = () => openLightbox(imgUrl, caption);
-            div.appendChild(img);
-            galleryGrid.appendChild(div);
-            validCount++;
-        }
-    });
-
-    if (validCount > 0) {
-        document.getElementById('gallery-section').classList.remove('hidden');
-    } else {
-        document.getElementById('gallery-section').classList.add('hidden');
-    }
-}
-
-// Setup Lightbox Modal
-function setupLightboxEvents() {
-    const lightbox = document.getElementById('lightbox');
-    const closeBtn = document.getElementById('lightbox-close');
-
-    closeBtn.onclick = () => lightbox.classList.add('hidden');
-    lightbox.onclick = (e) => {
-        if (e.target === lightbox) {
-            lightbox.classList.add('hidden');
-        }
-    };
-}
-
-function openLightbox(url, caption) {
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-    const lightboxCaption = document.getElementById('lightbox-caption');
-
-    lightboxImg.src = url;
-    lightboxCaption.textContent = caption || '';
-    lightbox.classList.remove('hidden');
-}
-
-// Setup Share Event
-function setupShareEvent() {
-    const shareBtn = document.getElementById('share-btn');
-    shareBtn.onclick = () => {
-        const shareUrl = window.location.href;
-        const profileName = document.getElementById('profile-name').textContent;
-
-        if (navigator.share) {
-            navigator.share({
-                title: profileName,
-                text: `SHOT Profile: ${profileName}`,
-                url: shareUrl
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                showToast('Link copied to clipboard');
-            }).catch(() => {
-                showToast('Failed to copy link');
-            });
-        }
-    };
-}
-
-// Dynamic vCard Download
-function generateVCard(profile) {
-    let vCard = "BEGIN:VCARD\nVERSION:3.0\n";
-    const name = profile.name || profile.title || "SHOT Contact";
-    vCard += `FN:${name}\nN:${name};;;;\n`;
-
-    if (profile.company) vCard += `ORG:${profile.company}\n`;
-    if (profile.role) vCard += `TITLE:${profile.role}\n`;
-    if (profile.phone) vCard += `TEL;TYPE=CELL:${normalizePhone(profile.phone)}\n`;
-    if (profile.whatsapp && profile.whatsapp !== profile.phone) {
-        vCard += `TEL;TYPE=WORK,VOICE:${normalizePhone(profile.whatsapp)}\n`;
-    }
-    if (profile.email) vCard += `EMAIL;TYPE=INTERNET:${profile.email.trim()}\n`;
-    if (profile.website) vCard += `URL:${normalizeUrl(profile.website)}\n`;
-    if (profile.address) vCard += `ADR;TYPE=WORK:;;${profile.address.trim()};;;;\n`;
-
-    vCard += "END:VCARD";
-
-    const blob = new Blob([vCard], { type: "text/vcard;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name.replace(/\s+/g, '_')}_contact.vcf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showToast('Contact Saved');
-}
-
-// Utility Helpers
-function normalizeUrl(url) {
-    if (!url) return '';
-    let trimmed = url.trim();
-    if (trimmed.toLowerCase().startsWith('javascript:')) return '#';
-    if (!/^https?:\/\//i.test(trimmed)) {
-        return 'https://' + trimmed;
-    }
-    return trimmed;
-}
-
-function normalizePhone(phone) {
-    if (!phone) return '';
-    return phone.replace(/[^\d+]/g, '');
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.classList.remove('hidden');
-    setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 3000);
 }
