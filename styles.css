@@ -610,193 +610,33 @@ html[dir="rtl"] .contact-card:hover {
 }
 
 /* =============================================================================
-   18 DISTINCT TEMPLATES (100% PARITY WITH ANDROID APP & FULL COLOR RESPONSIVENESS)
+   10 CORE HYBRID TEMPLATES (100% PARITY WITH ANDROID HYBRID COLOR SYSTEM)
    ============================================================================= */
 
 /* -----------------------------------------------------------------------------
-   1. PERSONAL_1: Creator Spotlight (Influencer / Centered / Ring Glow)
+   1. CORPORATE EXECUTIVE (Executive Pro / Split-Screen Prestige)
    ----------------------------------------------------------------------------- */
-.profile-container[data-template="personal_1"] .cover-section {
-    height: 190px;
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+.profile-container[data-template="corporate_executive"],
+.profile-container[data-template="business_1"],
+.profile-container[data-template="executive_1"] {
+    background: var(--bg-color);
 }
-.profile-container[data-template="personal_1"] .avatar-wrapper {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    border: 4px solid var(--primary-color);
-    box-shadow: 0 0 0 6px var(--primary-light), 0 8px 24px rgba(0,0,0,0.18);
+.profile-container[data-template="corporate_executive"] .cover-section,
+.profile-container[data-template="business_1"] .cover-section,
+.profile-container[data-template="executive_1"] .cover-section {
+    height: 140px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--gradient-end) 100%);
 }
-.profile-container[data-template="personal_1"] .section-title {
-    font-size: 17px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 3px solid var(--primary-color);
-    color: var(--primary-color);
-}
-.profile-container[data-template="personal_1"] .contact-card {
-    border-radius: 16px;
-    border: 1px solid var(--primary-light);
-    background: linear-gradient(180deg, var(--card-bg) 0%, var(--surface-variant) 100%);
-}
-.profile-container[data-template="personal_1"] .contact-icon-wrapper {
-    background-color: var(--primary-color);
-    color: var(--on-primary);
-}
-.profile-container[data-template="personal_1"] .link-button {
-    border-radius: 9999px;
-    padding: 14px 22px;
-    font-weight: 800;
-    background-color: var(--primary-color);
-    color: var(--on-primary);
-}
-
-/* -----------------------------------------------------------------------------
-   2. PERSONAL_2: Minimal Bio (Start-Aligned Row / Clean & Slim)
-   ----------------------------------------------------------------------------- */
-.profile-container[data-template="personal_2"] .cover-section {
-    height: 70px;
-    background: var(--surface-variant);
-    opacity: 0.8;
-}
-.profile-container[data-template="personal_2"] .profile-header {
-    margin-top: 16px;
-    padding: 0 20px 16px 20px;
-    flex-direction: row;
-    align-items: center;
-    text-align: start;
-    gap: 16px;
-}
-.profile-container[data-template="personal_2"] .avatar-wrapper {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 2px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 0;
-}
-.profile-container[data-template="personal_2"] .profile-info {
-    margin-bottom: 0;
-    flex: 1;
-}
-.profile-container[data-template="personal_2"] .profile-role-company {
-    justify-content: flex-start;
-}
-.profile-container[data-template="personal_2"] .profile-name {
-    font-size: 22px;
-    font-weight: 700;
-}
-.profile-container[data-template="personal_2"] .section-title {
-    border-bottom: 1px solid var(--border-color);
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-}
-.profile-container[data-template="personal_2"] .contact-card {
-    border: none;
-    border-bottom: 1px solid var(--border-color);
-    border-radius: 0;
-    background: transparent;
-    padding: 10px 4px;
-}
-.profile-container[data-template="personal_2"] .link-button {
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: var(--card-bg);
-    font-weight: 600;
-}
-
-/* -----------------------------------------------------------------------------
-   3. CREATIVE_1: Creative Studio (Start-Aligned Row / Organic Rotated Avatar)
-   ----------------------------------------------------------------------------- */
-.profile-container[data-template="creative_1"] .cover-section {
-    height: 160px;
-    background: radial-gradient(circle at top right, var(--primary-color), var(--accent-color), var(--primary-dark));
-}
-.profile-container[data-template="creative_1"] .profile-header {
-    margin-top: 16px;
-    padding: 0 20px 16px 20px;
-    flex-direction: row;
-    align-items: center;
-    text-align: start;
-    gap: 16px;
-}
-.profile-container[data-template="creative_1"] .avatar-wrapper {
+.profile-container[data-template="corporate_executive"] .avatar-wrapper,
+.profile-container[data-template="business_1"] .avatar-wrapper,
+.profile-container[data-template="executive_1"] .avatar-wrapper {
     width: 76px;
     height: 76px;
-    border-radius: 24px 8px 24px 8px;
-    border: 3px solid var(--card-bg);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    margin-bottom: 0;
-    transform: rotate(6deg);
-}
-.profile-container[data-template="creative_1"] .profile-info {
-    margin-bottom: 0;
-    flex: 1;
-}
-.profile-container[data-template="creative_1"] .profile-role-company {
-    justify-content: flex-start;
-}
-.profile-container[data-template="creative_1"] .profile-name {
-    font-size: 24px;
-    font-weight: 900;
-}
-.profile-container[data-template="creative_1"] .role-badge {
-    background-color: var(--primary-light);
-    color: var(--primary-color);
-}
-.profile-container[data-template="creative_1"] .section-title {
-    border-bottom: 3px dashed var(--accent-color);
-    font-size: 16px;
-    color: var(--primary-color);
-}
-.profile-container[data-template="creative_1"] .contact-card {
-    border-radius: 18px;
-    border: 2px solid var(--accent-color);
-    background-color: var(--surface-variant);
-}
-.profile-container[data-template="creative_1"] .link-button {
-    border-radius: 20px 6px 20px 6px;
-    border: 2px solid var(--primary-color);
-    background-color: var(--primary-light);
-    color: var(--primary-dark);
-}
-
-/* -----------------------------------------------------------------------------
-   4. BUSINESS_1: Executive Pro (Start-Aligned Row / Sharp Corporate Border)
-   ----------------------------------------------------------------------------- */
-.profile-container[data-template="business_1"] .cover-section {
-    height: 160px;
-    background: linear-gradient(135deg, var(--card-bg) 0%, var(--primary-dark) 100%);
-}
-.profile-container[data-template="business_1"] .profile-header {
-    margin-top: 16px;
-    padding: 0 20px 16px 20px;
-    flex-direction: row;
-    align-items: center;
-    text-align: start;
-    gap: 16px;
-}
-.profile-container[data-template="business_1"] .avatar-wrapper {
-    width: 72px;
-    height: 72px;
-    border-radius: 12px;
+    border-radius: 16px;
     border: 3px solid var(--primary-color);
     box-shadow: var(--shadow-md);
-    margin-bottom: 0;
 }
-.profile-container[data-template="business_1"] .profile-info {
-    margin-bottom: 0;
-    flex: 1;
-}
-.profile-container[data-template="business_1"] .profile-role-company {
-    justify-content: flex-start;
-}
-.profile-container[data-template="business_1"] .profile-name {
-    font-size: 24px;
-    font-weight: 800;
-}
+.profile-container[data-template="corporate_executive"] .section-title,
 .profile-container[data-template="business_1"] .section-title {
     font-size: 14px;
     text-transform: uppercase;
@@ -804,38 +644,742 @@ html[dir="rtl"] .contact-card:hover {
     border-bottom: 2px solid var(--primary-color);
     color: var(--primary-color);
 }
+.profile-container[data-template="corporate_executive"] .contact-card,
 .profile-container[data-template="business_1"] .contact-card {
-    border-radius: 8px;
+    border-radius: 10px;
     border-inline-start: 4px solid var(--primary-color);
     background-color: var(--surface-variant);
 }
 
 /* -----------------------------------------------------------------------------
-   5. BUSINESS_2: Corporate Minimal (Centered / 8px Squircle)
+   2. CORPORATE BENTO (Structured 2x2 Bento Box Grid)
    ----------------------------------------------------------------------------- */
-.profile-container[data-template="business_2"] .cover-section {
+.profile-container[data-template="corporate_bento"] .cover-section {
     height: 100px;
     background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
 }
-.profile-container[data-template="business_2"] .avatar-wrapper {
+.profile-container[data-template="corporate_bento"] .avatar-wrapper {
     width: 80px;
     height: 80px;
-    border-radius: 8px;
+    border-radius: 16px;
     border: 3px solid var(--card-bg);
     box-shadow: var(--shadow-md);
 }
-.profile-container[data-template="business_2"] .section-title {
-    border-bottom: 1px solid var(--border-color);
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.profile-container[data-template="corporate_bento"] .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }
-.profile-container[data-template="business_2"] .contact-card {
-    border-radius: 8px;
+.profile-container[data-template="corporate_bento"] .contact-card {
+    border-radius: 16px;
     border: 1px solid var(--border-color);
-    background: var(--bg-color);
-    padding: 10px 14px;
+    background: var(--card-bg);
+    padding: 12px;
+}
+.profile-container[data-template="corporate_bento"] .contact-icon-wrapper {
+    color: var(--primary-color);
 }
 
 /* -----------------------------------------------------------------------------
-   6. BUSINESS_3: Boutique Luxe (Luxury Gold & Accent Frame
+   3. CORPORATE MINIMAL (Swiss Style Clean Typography)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="corporate_minimal"],
+.profile-container[data-template="minimal_1"] .cover-section {
+    display: none;
+}
+.profile-container[data-template="corporate_minimal"] .profile-header,
+.profile-container[data-template="minimal_1"] .profile-header {
+    margin-top: 0;
+    padding: 24px 20px 16px 20px;
+    border-bottom: 2px solid var(--border-color);
+    flex-direction: row;
+    align-items: center;
+    text-align: start;
+    gap: 16px;
+}
+.profile-container[data-template="corporate_minimal"] .avatar-wrapper,
+.profile-container[data-template="minimal_1"] .avatar-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    box-shadow: none;
+    margin-bottom: 0;
+}
+.profile-container[data-template="corporate_minimal"] .profile-name,
+.profile-container[data-template="minimal_1"] .profile-name {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+.profile-container[data-template="corporate_minimal"] .section-title,
+.profile-container[data-template="minimal_1"] .section-title {
+    border-bottom: 2px solid var(--border-color);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.profile-container[data-template="corporate_minimal"] .contact-card,
+.profile-container[data-template="minimal_1"] .contact-card {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--card-bg);
+    box-shadow: none;
+}
+
+/* -----------------------------------------------------------------------------
+   4. CORPORATE LUXE (Boutique Luxe / Prestige Emerald Midnight with Gold Accents)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="corporate_luxe"],
+.profile-container[data-template="business_3"] {
+    background-color: #071318 !important;
+    color: #F8FAFC !important;
+    border: 2px solid var(--accent-color);
+    border-radius: var(--radius-lg);
+}
+.profile-container[data-template="corporate_luxe"] .cover-section,
+.profile-container[data-template="business_3"] .cover-section {
+    height: 160px;
+    background: linear-gradient(180deg, #0E1F26 0%, #071318 100%);
+}
+.profile-container[data-template="corporate_luxe"] .avatar-wrapper,
+.profile-container[data-template="business_3"] .avatar-wrapper {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    background-color: #162E38;
+}
+.profile-container[data-template="corporate_luxe"] .profile-name,
+.profile-container[data-template="business_3"] .profile-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: #FFFFFF !important;
+    letter-spacing: 1px;
+}
+.profile-container[data-template="corporate_luxe"] .profile-role,
+.profile-container[data-template="business_3"] .profile-role {
+    color: var(--accent-color) !important;
+    font-weight: 700;
+}
+.profile-container[data-template="corporate_luxe"] .section-title,
+.profile-container[data-template="business_3"] .section-title {
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-color);
+    border-bottom: 1px solid var(--accent-color);
+    text-align: center;
+}
+.profile-container[data-template="corporate_luxe"] .contact-card,
+.profile-container[data-template="business_3"] .contact-card {
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #0E1F26 !important;
+    color: #F8FAFC !important;
+}
+.profile-container[data-template="corporate_luxe"] .contact-value,
+.profile-container[data-template="business_3"] .contact-value {
+    color: #F8FAFC !important;
+}
+.profile-container[data-template="corporate_luxe"] .save-vcard-btn,
+.profile-container[data-template="business_3"] .save-vcard-btn {
+    background-color: var(--accent-color) !important;
+    color: #071318 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   5. CORPORATE BADGE (Vertical Security Lanyard Pass)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="corporate_badge"] .cover-section {
+    height: 100px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+.profile-container[data-template="corporate_badge"] .avatar-wrapper {
+    width: 90px;
+    height: 90px;
+    border-radius: 20px;
+    border: 3px solid var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+.profile-container[data-template="corporate_badge"] .section-title {
+    border-bottom: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.profile-container[data-template="corporate_badge"] .contact-card {
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+/* -----------------------------------------------------------------------------
+   6. CREATOR SPOTLIGHT (Hero Banner + Glowing Dynamic Ring)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="creator_spotlight"],
+.profile-container[data-template="personal_1"] .cover-section {
+    height: 180px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--gradient-end) 100%);
+}
+.profile-container[data-template="creator_spotlight"] .avatar-wrapper,
+.profile-container[data-template="personal_1"] .avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid var(--primary-color);
+    box-shadow: 0 0 0 6px var(--primary-light), 0 8px 24px rgba(0,0,0,0.18);
+}
+.profile-container[data-template="creator_spotlight"] .section-title,
+.profile-container[data-template="personal_1"] .section-title {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid var(--primary-color);
+    color: var(--primary-color);
+    text-align: center;
+}
+.profile-container[data-template="creator_spotlight"] .link-button,
+.profile-container[data-template="personal_1"] .link-button {
+    border-radius: 9999px;
+    background-color: var(--primary-color);
+    color: var(--on-primary);
+}
+
+/* -----------------------------------------------------------------------------
+   7. CREATOR MASONRY (Artisan Masonry / Gallery-First Grid)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="creator_masonry"],
+.profile-container[data-template="creative_1"] .cover-section {
+    height: 140px;
+    background: radial-gradient(circle at top right, var(--primary-color), var(--accent-color), var(--primary-dark));
+}
+.profile-container[data-template="creator_masonry"] .avatar-wrapper,
+.profile-container[data-template="creative_1"] .avatar-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px 8px 24px 8px;
+    border: 3px solid var(--card-bg);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transform: rotate(6deg);
+}
+.profile-container[data-template="creator_masonry"] .section-title,
+.profile-container[data-template="creative_1"] .section-title {
+    border-bottom: 3px dashed var(--primary-color);
+    font-size: 15px;
+    color: var(--primary-color);
+}
+
+/* -----------------------------------------------------------------------------
+   8. CREATOR TERMINAL (Dev Console / Hacker Shell with Phosphor Highlights)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="creator_terminal"] {
+    background-color: #050505 !important;
+    color: #E6EDF3 !important;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace !important;
+}
+.profile-container[data-template="creator_terminal"] .cover-section {
+    height: 100px;
+    background: #161B22 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.profile-container[data-template="creator_terminal"] .avatar-wrapper {
+    width: 76px;
+    height: 76px;
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+    background-color: #0D1117;
+    box-shadow: 0 0 16px rgba(0, 255, 128, 0.2);
+}
+.profile-container[data-template="creator_terminal"] .profile-name {
+    color: #FFFFFF !important;
+    font-family: inherit !important;
+}
+.profile-container[data-template="creator_terminal"] .profile-role {
+    color: var(--primary-color) !important;
+    font-family: inherit !important;
+}
+.profile-container[data-template="creator_terminal"] .section-title {
+    color: var(--primary-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+.profile-container[data-template="creator_terminal"] .contact-card {
+    background-color: #0D1117 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #E6EDF3 !important;
+}
+.profile-container[data-template="creator_terminal"] .contact-value {
+    color: var(--primary-color) !important;
+    font-family: inherit !important;
+}
+.profile-container[data-template="creator_terminal"] .link-button {
+    background-color: #0D1117 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #E6EDF3 !important;
+    font-family: inherit !important;
+}
+.profile-container[data-template="creator_terminal"] .save-vcard-btn {
+    background-color: var(--primary-color) !important;
+    color: #050505 !important;
+    font-family: inherit !important;
+    border-radius: 8px;
+}
+
+/* -----------------------------------------------------------------------------
+   9. CREATOR MAGAZINE (Editorial Lookbook / High Fashion Paper Canvas)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="creator_magazine"] {
+    background-color: #FAFAF9 !important;
+    color: #1C1917 !important;
+}
+.profile-container[data-template="creator_magazine"] .cover-section {
+    height: 200px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E7E5E4;
+}
+.profile-container[data-template="creator_magazine"] .avatar-wrapper {
+    width: 90px;
+    height: 90px;
+    border-radius: 4px;
+    border: 2px solid #E7E5E4;
+    box-shadow: var(--shadow-sm);
+}
+.profile-container[data-template="creator_magazine"] .profile-name {
+    font-family: Georgia, 'Times New Roman', serif !important;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1C1917 !important;
+}
+.profile-container[data-template="creator_magazine"] .profile-role {
+    color: var(--primary-color) !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 800;
+    font-size: 11px;
+}
+.profile-container[data-template="creator_magazine"] .section-title {
+    border-bottom: 1px solid #E7E5E4;
+    color: #1C1917;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.profile-container[data-template="creator_magazine"] .contact-card {
+    border-radius: 4px;
+    border: 1px solid #E7E5E4;
+    background: #FFFFFF !important;
+    color: #1C1917 !important;
+}
+.profile-container[data-template="creator_magazine"] .link-button {
+    border-radius: 4px;
+    border: 1px solid #E7E5E4;
+    background: #FFFFFF !important;
+    color: #1C1917 !important;
+}
+
+/* -----------------------------------------------------------------------------
+   10. CREATOR NEUMORPHIC (Soft Horizon 3D UI Slate)
+   ----------------------------------------------------------------------------- */
+.profile-container[data-template="creator_neumorphic"] {
+    background-color: #E2E8F0 !important;
+    color: #1E293B !important;
+}
+.profile-container[data-template="creator_neumorphic"] .cover-section {
+    height: 120px;
+    background: #E2E8F0;
+    box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.05);
+}
+.profile-container[data-template="creator_neumorphic"] .avatar-wrapper {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: #E2E8F0;
+    border: 3px solid #CBD5E1;
+    box-shadow: 6px 6px 12px #CBD5E1, -6px -6px 12px #FFFFFF;
+}
+.profile-container[data-template="creator_neumorphic"] .section-title {
+    color: var(--primary-color);
+    border-bottom: 2px solid #CBD5E1;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+.profile-container[data-template="creator_neumorphic"] .contact-card {
+    border-radius: 18px;
+    border: 1px solid #CBD5E1;
+    background-color: #F1F5F9 !important;
+    box-shadow: 4px 4px 10px #CBD5E1, -4px -4px 10px #FFFFFF;
+}
+.profile-container[data-template="creator_neumorphic"] .link-button {
+    border-radius: 18px;
+    border: 1px solid #CBD5E1;
+    background-color: #F1F5F9 !important;
+    box-shadow: 4px 4px 8px #CBD5E1, -4px -4px 8px #FFFFFF;
+    color: #1E293B !important;
+}
+.profile-container[data-template="creator_neumorphic"] .save-vcard-btn {
+    border-radius: 20px;
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* -----------------------------------------------------------------------------
+   CATEGORY 3: STORES, HOSPITALITY & REVIEWS (5 TEMPLATES)
+   ----------------------------------------------------------------------------- */
+
+/* 11. REVIEWS 1: 5-STAR TAP MASTER (Hero Golden Review Banner) */
+.profile-container[data-template="reviews_1"] .cover-section {
+    height: 140px;
+    background: linear-gradient(135deg, #78350F 0%, #D97706 50%, #F59E0B 100%);
+}
+.profile-container[data-template="reviews_1"] .avatar-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #F59E0B;
+    box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.25), 0 8px 24px rgba(0,0,0,0.18);
+}
+.template-hero-card.review-5star-master {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 2px solid #F59E0B;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 16px 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.18);
+}
+.hero-stars-gold {
+    font-size: 28px;
+    color: #F59E0B;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+}
+.hero-btn-gold {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    display: inline-block;
+    width: 100%;
+    box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hero-btn-gold:active {
+    transform: scale(0.98);
+}
+
+/* 12. REVIEWS SHOWCASE: BOUTIQUE CAFE & BENTO MENU */
+.profile-container[data-template="reviews_showcase"] .cover-section {
+    height: 150px;
+    background: linear-gradient(135deg, #292524 0%, #44403C 100%);
+}
+.template-hero-card.review-showcase-bento {
+    background: transparent;
+    padding: 0 20px;
+    margin: 12px 0 16px 0;
+}
+.open-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+.live-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+.bento-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.bento-hero-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px;
+    text-decoration: none;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease;
+    cursor: pointer;
+}
+.bento-hero-card:active {
+    transform: scale(0.97);
+}
+.bento-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+.bento-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-main);
+}
+.bento-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.bento-rating {
+    background: linear-gradient(135deg, #FEF3C7, #FFFBEB);
+    border-color: #FCD34D;
+}
+
+/* 13. REVIEWS CLINIC TRUST: CLINIC CARE & APPOINTMENTS */
+.profile-container[data-template="reviews_clinic_trust"] .cover-section {
+    height: 120px;
+    background: linear-gradient(135deg, #065F46 0%, #0D9488 100%);
+}
+.template-hero-card.review-clinic-trust {
+    background: #F0FDF4;
+    border: 1.5px solid #86EFAC;
+    border-radius: 18px;
+    padding: 18px;
+    margin: 16px 20px;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+}
+.clinic-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #DCFCE7;
+    color: #166534;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+.hero-btn-clinic {
+    background: #059669 !important;
+    color: #FFFFFF !important;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+.clinic-hotline-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #991B1B;
+    text-decoration: none;
+    font-weight: 600;
+}
+.hotline-pill {
+    background: #DC2626;
+    color: #FFFFFF;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* 14. REVIEWS COUPON REWARD: PERFORATED COUPON TICKET */
+.profile-container[data-template="reviews_coupon_reward"] .cover-section {
+    height: 130px;
+    background: linear-gradient(135deg, #B45309 0%, #F59E0B 100%);
+}
+.template-hero-card.review-coupon-ticket {
+    background: #FFFBEB;
+    border: 2px solid #F59E0B;
+    border-radius: 18px;
+    margin: 16px 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.16);
+}
+.coupon-ticket-header {
+    background: #FEF3C7;
+    padding: 14px 16px;
+    text-align: center;
+}
+.coupon-tag {
+    font-size: 11px;
+    font-weight: 800;
+    color: #92400E;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.coupon-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #78350F;
+    margin-top: 2px;
+}
+.coupon-perforation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #FFFBEB;
+}
+.scissor-icon {
+    font-size: 14px;
+}
+.perforation-line {
+    flex: 1;
+    height: 1px;
+    border-bottom: 2px dashed #D97706;
+}
+.perforation-text {
+    font-size: 10px;
+    font-weight: 800;
+    color: #92400E;
+    letter-spacing: 1px;
+}
+.coupon-ticket-body {
+    padding: 14px 16px;
+    text-align: center;
+}
+.coupon-instructions {
+    font-size: 12px;
+    color: #78350F;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+.revealed-code-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FEF3C7;
+    border: 1px solid #FCD34D;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #92400E;
+}
+.promo-code {
+    font-family: monospace;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: #B45309;
+}
+.code-validity {
+    background: #F59E0B;
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* 15. REVIEWS SOCIAL DINING: DINING & DELIVERY HUB */
+.profile-container[data-template="reviews_social_dining"] .cover-section {
+    height: 140px;
+    background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
+}
+.template-hero-card.review-social-dining {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 18px;
+    padding: 16px;
+    margin: 16px 20px;
+    box-shadow: var(--shadow-sm);
+}
+.delivery-hub-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.delivery-apps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.delivery-app-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface-variant);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--text-main);
+    transition: transform 0.15s ease;
+}
+.delivery-app-card:active {
+    transform: scale(0.97);
+}
+.delivery-icon {
+    font-size: 18px;
+}
+.delivery-name {
+    font-size: 12px;
+    font-weight: 700;
+    flex: 1;
+    margin: 0 6px;
+}
+.delivery-cta {
+    background: var(--primary-color);
+    color: var(--on-primary);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text-main);
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    transition: opacity 0.3s ease;
+}
+
+@media (min-width: 640px) {
+    body {
+        padding: 40px 0;
+    }
+    #app {
+        border-radius: var(--radius-lg);
+        min-height: auto;
+    }
+}
